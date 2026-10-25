@@ -56,10 +56,10 @@ const STROKES={
   free:[[0,-20,-26,28],[.20,-28,-28,23],[.42,-30,-25,25],[.61,-20,-22,25],[.80,-20,-26,28]],
   incoming:[180,-65],outgoing:[-170,-62]},
  tennis:{head:52,contact:.42,
-  arm:[[0,.45,.55,1.40],[.20,.70,-.90,1.35],[.33,.75,-.70,1.15],[.42,1.05,.65,.40],[.49,1.25,1.65,.70],[.62,1.45,2.10,1.25],[.78,.60,.95,1.40],[.91,.45,.55,1.40]],
+  arm:[[0,.45,.55,1.40],[.12,.48,.10,1.42],[.23,.52,-.45,1.40],[.33,.60,-.35,1.15],[.42,1.05,.65,.40],[.49,1.25,1.65,.70],[.62,1.45,2.10,1.25],[.78,.60,.95,1.40],[.91,.45,.55,1.40]],
   wrist:[[0,1.10,.65,1.65],[.20,1.20,.30,1.80],[.33,1.25,.15,1.75],[.42,.65,.65,1.65],[.49,.85,.20,1.10],[.62,1.10,.65,.90],[.78,1.0,.60,1.65],[.91,1.10,.65,1.65]],
-  body:[[0,0,0,0],[.20,7,-.30,-.58],[.33,4,-.02,-.38],[.42,0,.16,.08],[.49,-3,.25,.35],[.62,-6,.34,.65],[.78,0,.05,.18],[.91,0,0,0]],
-  free:[[0,10,-30,32],[.20,-43,-47,20],[.33,-52,-42,27],[.42,-29,-28,24],[.62,-16,-20,20],[.78,8,-30,32],[.91,10,-30,32]],
+  body:[[0,0,0,0],[.12,3,-.17,-.30],[.23,7,-.34,-.78],[.33,4,-.02,-.60],[.42,0,.16,.08],[.49,-3,.25,.35],[.62,-6,.34,.65],[.78,0,.05,.18],[.91,0,0,0]],
+  free:[[0,10,-30,32],[.12,23,-25,31],[.23,21,-21,17],[.30,-18,-33,27],[.36,-41,-38,28],[.42,-29,-28,24],[.62,-16,-20,20],[.78,8,-30,32],[.91,10,-30,32]],
   incoming:[205,-65],outgoing:[-190,-85]},
  badminton:{head:57,contact:.42,
   arm:[[0,.60,.55,1.50],[.20,1.75,-.70,1.70],[.33,1.90,-.90,1.95],[.42,2.55,1.0,.38],[.455,2.15,2.0,.32],[.49,1.35,1.90,.50],[.62,.60,2.30,1.40],[.80,.60,.55,1.50]],
@@ -114,6 +114,16 @@ export function courtPose(sport,phase,resting=false,withProjectile=true){
  const free={...limb(shoulders[0],freeSolved.middle,freeSolved.end,-1,'arm'),handOpen:true};
  const result=rig(hip,neck,legs,[free,dominant],phase,resting);
  result.torso={chestScale:Math.cos(chestYaw),hipYaw,chestYaw};
+ if(sport==='tennis'){
+  // The shirt and sleeves use the actual projected clavicle anchors, rather
+  // than scaling an unrelated front-facing shirt over rotating shoulders.
+  result.shoulderRig={
+   left:free.shoulder,right:dominant.shoulder,
+   roots:[free,dominant].map(arm=>({side:arm.side,
+    root:{x:arm.shoulder.x+(neck.x-arm.shoulder.x)*.23,y:arm.shoulder.y-3}}))
+  };
+ }
+
  result.stroke={elevation,sweep,flex,cock,roll,swivel};
  result.equipment=racketFrame(dominant,cock,roll,c.head,sport);
  if(!resting&&withProjectile){

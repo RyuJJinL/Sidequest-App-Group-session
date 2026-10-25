@@ -72,10 +72,14 @@ function drawFrontBody(ctx,motion,jacket){
   taperedLimb(ctx,sock,ankle,7,7,jacket?SKIN:'#f3e9d9');
   frontShoe(ctx,leg,jacket?'#bb8788':SAGE);
  }
+ // In a unit turn, each limb segment passes behind/in front independently.
+ if(motion.shoulderRig) drawTennisArms(ctx,motion,jacket,true);
  // Neck goes behind the shirt and its collar.
  capsule(ctx,{x:neck.x,y:neck.y-12},{x:neck.x,y:neck.y+12},17,SKIN);
  path(ctx,[[hip.x-23,hip.y-10],[hip.x+23,hip.y-10],[hip.x+26,hip.y+25],[hip.x+3,hip.y+27],[hip.x,hip.y+14],[hip.x-3,hip.y+27],[hip.x-26,hip.y+25]],jacket?'#be8c8d':CREAM);
  ctx.strokeStyle=jacket?'#d9a4a1':'#c6b397';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(hip.x,hip.y-2);ctx.lineTo(hip.x,hip.y+14);ctx.stroke();
+ if(motion.shoulderRig) drawTennisShirt(ctx,motion,jacket);
+ else {
  ctx.save();ctx.translate(neck.x,neck.y);ctx.scale(motion.torso?.chestScale??1,1);ctx.translate(-neck.x,-neck.y);
  path(ctx,[[neck.x-20,neck.y+6],[neck.x-27,neck.y+18],[hip.x-23,hip.y-6],[hip.x+23,hip.y-6],[neck.x+27,neck.y+18],[neck.x+20,neck.y+6]],jacket?SLATE:SAGE);
  if(jacket){
@@ -87,5 +91,75 @@ function drawFrontBody(ctx,motion,jacket){
   ctx.strokeStyle=CREAM;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(neck.x,neck.y+24);ctx.lineTo(neck.x,neck.y+39);ctx.stroke();
  }
  ctx.restore();
- for(const side of motion.armOrder) frontArm(ctx,motion.arms.find(a=>a.side===side),jacket);
+ }
+ if(motion.shoulderRig) drawTennisArms(ctx,motion,jacket,false);
+ else for(const side of motion.armOrder) frontArm(ctx,motion.arms.find(a=>a.side===side),jacket);
+}
+
+// Sleeve roots have no round joint cap or dark line across the socket. Their
+// fill overlaps the shirt; only the two sleeve edges and cuff are outlined.
+function attachedSleeve(ctx,root,end,rootWidth,cuffWidth,color,side=0){
+ const angle=Math.atan2(end.y-root.y,end.x-root.x),nx=Math.sin(angle),ny=-Math.cos(angle);
+ const a={x:root.x+nx*rootWidth,y:root.y+ny*rootWidth},b={x:end.x+nx*cuffWidth,y:end.y+ny*cuffWidth};
+ const c={x:end.x-nx*cuffWidth,y:end.y-ny*cuffWidth},d={x:root.x-nx*rootWidth,y:root.y-ny*rootWidth};
+ const outer={x:(a.x+b.x)/2+nx*2,y:(a.y+b.y)/2+ny*2};
+ const inner={x:(c.x+d.x)/2-nx,y:(c.y+d.y)/2-ny};
+ const cuff={x:end.x+Math.cos(angle)*2,y:end.y+Math.sin(angle)*2};
+ ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.quadraticCurveTo(outer.x,outer.y,b.x,b.y);ctx.quadraticCurveTo(cuff.x,cuff.y,c.x,c.y);ctx.quadraticCurveTo(inner.x,inner.y,d.x,d.y);ctx.closePath();ctx.fillStyle=color;ctx.fill();
+ ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();
+ if(!side||side*(a.x-root.x)>0){
+  ctx.moveTo(a.x,a.y);ctx.quadraticCurveTo(outer.x,outer.y,b.x,b.y);ctx.quadraticCurveTo(cuff.x,cuff.y,c.x,c.y);
+  ctx.quadraticCurveTo(inner.x,inner.y,d.x+(c.x-d.x)*(side ? .3 : 0),d.y+(c.y-d.y)*(side ? .3 : 0));
+ }else{
+  ctx.moveTo(d.x,d.y);ctx.quadraticCurveTo(inner.x,inner.y,c.x,c.y);ctx.quadraticCurveTo(cuff.x,cuff.y,b.x,b.y);
+  ctx.quadraticCurveTo(outer.x,outer.y,a.x+(b.x-a.x)*.3,a.y+(b.y-a.y)*.3);
+ }
+ ctx.stroke();
+}
+function tennisUpperArm(ctx,motion,arm,jacket){
+ const {shoulder,elbow}=arm,root=motion.shoulderRig.roots.find(r=>r.side===arm.side).root;
+ const projected=Math.hypot(elbow.x-shoulder.x,elbow.y-shoulder.y)/39;
+ const width=.78+.22*Math.min(1,projected);
+ // A foreshortened upper arm stays compact; it cannot become a circular cap.
+ if(!jacket){const skinStart={x:shoulder.x+(elbow.x-shoulder.x)*.45,y:shoulder.y+(elbow.y-shoulder.y)*.45};taperedLimb(ctx,skinStart,elbow,8*width,7.5*width,SKIN);}
+ const sleeveEnd={x:shoulder.x+(elbow.x-shoulder.x)*(jacket?.98:.52),y:shoulder.y+(elbow.y-shoulder.y)*(jacket?.98:.52)};
+ attachedSleeve(ctx,root,sleeveEnd,10.5*width,(jacket?8:9)*width,jacket?PEACH:SAGE,arm.side);
+ if(jacket){
+  const bandA={x:shoulder.x+(elbow.x-shoulder.x)*.59,y:shoulder.y+(elbow.y-shoulder.y)*.59};
+  const bandB={x:shoulder.x+(elbow.x-shoulder.x)*.86,y:shoulder.y+(elbow.y-shoulder.y)*.86};
+  attachedSleeve(ctx,bandA,bandB,8.4*width,8*width,CREAM);
+ }
+}
+function tennisForearm(ctx,arm,jacket){
+ const {elbow,wrist}=arm;
+ taperedLimb(ctx,elbow,wrist,7.5,6,jacket?SLATE:SKIN);
+ // Cover the shared elbow seam with the same surface instead of outlining a
+ // second cap at the same joint. The limb remains one connected silhouette.
+ oval(ctx,elbow.x,elbow.y,6.5,6.5,jacket?SLATE:SKIN,null);
+ ctx.save();ctx.translate(wrist.x,wrist.y);ctx.rotate(-arm.side*.12);
+ oval(ctx,0,0,arm.handOpen?6:7,arm.handOpen?9:8,SKIN);
+ ctx.strokeStyle='#b67664';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-2,0);ctx.lineTo(3,0);ctx.stroke();ctx.restore();
+}
+function drawTennisArms(ctx,motion,jacket,behind){
+ for(const side of motion.armOrder){
+  const arm=motion.arms.find(a=>a.side===side),{world}=arm;
+  if(((world.shoulder.z+world.elbow.z)/2<0)===behind)tennisUpperArm(ctx,motion,arm,jacket);
+  if(((world.elbow.z+world.wrist.z)/2<0)===behind)tennisForearm(ctx,arm,jacket);
+ }
+}
+function drawTennisShirt(ctx,motion,jacket){
+ const {neck,hip}=motion,{left,right}=motion.shoulderRig;
+ const L={x:left.x-6,y:left.y-7},R={x:right.x+6,y:right.y-7};
+ const contour=[[neck.x-13,neck.y+5],[L.x,L.y],[hip.x-23,hip.y-6],[hip.x+23,hip.y-6],[R.x,R.y],[neck.x+13,neck.y+5]];
+ path(ctx,contour,jacket?SLATE:SAGE);
+ ctx.save();ctx.clip();
+ if(jacket){
+  path(ctx,[[neck.x-14,neck.y+3],[L.x-4,L.y-5],[L.x,L.y+17],[neck.x,neck.y+40],[R.x,R.y+17],[R.x+4,R.y-5],[neck.x+14,neck.y+3]],PEACH);
+  path(ctx,[[L.x,L.y+17],[neck.x,neck.y+40],[R.x,R.y+17],[R.x,R.y+33],[neck.x,neck.y+55],[L.x,L.y+33]],CREAM);
+  ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(neck.x,neck.y+7);ctx.lineTo(hip.x,hip.y-7);ctx.stroke();
+ }else{
+  path(ctx,[[neck.x-13,neck.y+4],[neck.x,neck.y+20],[neck.x+13,neck.y+4],[neck.x+15,neck.y+19],[neck.x+5,neck.y+16],[neck.x,neck.y+27],[neck.x-5,neck.y+16],[neck.x-15,neck.y+19]],CREAM);
+  ctx.strokeStyle=CREAM;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(neck.x,neck.y+24);ctx.lineTo(neck.x,neck.y+39);ctx.stroke();
+ }
+ ctx.restore();
 }

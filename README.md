@@ -23,6 +23,7 @@ npm test
 - Front-facing running with separate shoulder and hip anchors, opposite arm/leg timing, depth-based knee recovery and forward-facing shoes.
 - Forward walking with relaxed opposite arm swings, low foot lift and continuous ground contact.
 - Joint-driven pickleball and tennis forehands and a badminton overhead stroke: hips/chest load before the elbow opens into contact, the racket releases its wrist lag, and the arm decelerates across the body. Supporting arms balance or guide the stroke; racket faces rotate with the forearm.
+- Tennis shoulder sockets and sleeves share the projected collarbone anchors; arm segments pass behind or in front of the torso during the unit turn. Preparation keeps the elbow close and the guiding hand near the racket before release.
 - Balls and shuttlecocks meet the paddle or strings at contact; the shuttle feathers follow its flight direction.
 - Focus, short break and long break timers; pause, resume and reset.
 - A long break after every fourth completed focus round. New rounds start manually.
