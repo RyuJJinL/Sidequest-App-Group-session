@@ -20,6 +20,7 @@ npm test
 ## Features
 
 - Two illustrated outfits based on the supplied character photos and videos: sage court wear and peach/slate track wear. Ponytail, striped headband, facial details and sneakers follow the articulated rig.
+- Both outfits use weighted 2D clothing meshes on the existing body skeleton. Shirt and sleeves share armhole vertices; the waist follows the pelvis while each shorts opening follows its thigh. Continuous jacket sleeves and leggings blend across elbows and knees, with volume corrections at bends. Collar, zipper and colour panels deform with the shirt surface.
 - Front-facing running with separate shoulder and hip anchors, opposite arm/leg timing, depth-based knee recovery and forward-facing shoes.
 - Forward walking with relaxed opposite arm swings, low foot lift and continuous ground contact.
 - Joint-driven pickleball and tennis forehands and a badminton overhead stroke: hips/chest load before the elbow opens into contact, the racket releases its wrist lag, and the arm decelerates across the body. Supporting arms balance or guide the stroke; racket faces rotate with the forearm.
@@ -36,6 +37,8 @@ npm test
 Completed rounds and active countdown are per page session; reloading resets them. Reduced motion shows a static character pose. Completion sounds require a user interaction and browser audio support. There is no account, backend, online group session or notification service in this first version.
 
 ## StykAnimate integration
+
+`src/clothing.mjs` adds the original clothing renderer: bone-weighted vertex deformation, shared garment attachment vertices, camera-facing limb cross sections, elbow/knee volume preservation and a shoulder silhouette correction for cross-body poses. Sleeve triangles reveal progressively against the turned chest surface. These are authored mesh deformations, not cloth physics or motion capture; no animation editor, paid runtime or extra connection is required.
 
 `vendor/stykanimate/motion.mjs` includes the upstream `defaultFigure` topology from `src/demo.mjs` and `sampleAnglePath` from `src/rig-angle-path.mjs`. The illustrated runtime uses depth-based frontal rigs with fixed limb lengths. Running and walking interpolate thigh/knee cycles; racket sports interpolate shoulder elevation/sweep, elbow flexion, forearm swivel, wrist cock and roll. Forward kinematics determines the hitting arms and the tennis/badminton supporting arms; two-bone inverse kinematics positions the pickleball supporting arm and planted legs. Continuous depth clipping reveals arm and racket portions through the chest plane. Badminton keeps its racket orientation relative to the elbow frame through overhead poses. Racket direction derives from the forearm, with depth projection and forearm roll controlling its appearance. These cyclic curves use the upstream periodic interpolator. The upstream figure topology is retained in the vendor source as a reference. The sport choreography, props and timer interface are new Sidequest code. This is a small runtime adaptation, not the full StykAnimate editor, and does not import/export `.styk` projects.
 
