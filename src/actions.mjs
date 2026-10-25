@@ -45,46 +45,78 @@ export function frontWalkPose(phase,resting=false){
  });
  return rig({x:sway,y},{x:sway*.25,y:y-78},legs,arms,phase,resting);
 }
-// Each sport has its own ready / preparation / contact / follow-through /
-// recovery poses. Wrist targets are relative to the torso, in world space.
-const COURT={
- pickleball:{contact:.42,head:40,body:5,
-  keys:[[0,34,-16,12,-1.05],[.20,53,-4,-16,-.35],[.42,52,-14,26,-.55],[.60,3,-22,34,-.4],[.82,23,-18,18,-.8]],
-  free:[-30,-9,12],incoming:[180,-75],outgoing:[-170,-62]},
- tennis:{contact:.42,head:52,body:9,
-  keys:[[0,42,-30,12,-1.2],[.22,69,-27,-20,.4],[.42,60,-20,23,-.25],[.62,-8,-43,39,-2.9],[.75,8,-12,30,-.2],[.86,42,-26,20,-.9]],
-  free:[-56,-32,5],incoming:[205,-61],outgoing:[-190,-85]},
- badminton:{contact:.42,head:57,body:6,
-  keys:[[0,38,-26,10,-1.1],[.22,47,-96,-25,-1.9],[.42,40,-123,10,-1.4],[.60,0,-45,36,-2.9],[.82,38,-26,15,-1.1]],
-  free:[-47,-43,5],incoming:[165,-225],outgoing:[-150,-15]}
+// Joint-space strokes: upper-arm elevation/sweep and elbow flexion determine
+// the hand. Racket lag is relative to the forearm, never an independent path.
+// Slow preparation, a short acceleration window, then a longer deceleration.
+const STROKES={
+ pickleball:{head:40,contact:.42,
+  arm:[[0,.42,.55,1.35],[.20,.40,-.65,1.30],[.33,.48,-.40,1.15],[.42,.74,.55,.65],[.49,.80,1.10,.85],[.61,.95,1.80,1.20],[.80,.50,.90,1.30]],
+  wrist:[[0,.80,.65,1.65],[.20,.85,.50,1.80],[.33,1.0,.40,1.75],[.42,.65,.60,1.65],[.49,.90,.65,1.20],[.61,1.0,.70,.95],[.80,.80,.65,1.65]],
+  body:[[0,0,0,0],[.20,5,-.20,-.38],[.33,3,-.04,-.28],[.42,0,.12,.06],[.61,-4,.22,.36],[.80,0,.04,.10]],
+  free:[[0,-20,-26,28],[.20,-28,-28,23],[.42,-30,-25,25],[.61,-20,-22,25],[.80,-20,-26,28]],
+  incoming:[180,-65],outgoing:[-170,-62]},
+ tennis:{head:52,contact:.42,
+  arm:[[0,.45,.55,1.40],[.20,.70,-.90,1.35],[.33,.75,-.70,1.15],[.42,1.05,.65,.40],[.49,1.25,1.65,.70],[.62,1.45,2.10,1.25],[.78,.60,.95,1.40],[.91,.45,.55,1.40]],
+  wrist:[[0,1.10,.65,1.65],[.20,1.20,.30,1.80],[.33,1.25,.15,1.75],[.42,.65,.65,1.65],[.49,.85,.20,1.10],[.62,1.10,.65,.90],[.78,1.0,.60,1.65],[.91,1.10,.65,1.65]],
+  body:[[0,0,0,0],[.20,7,-.30,-.58],[.33,4,-.02,-.38],[.42,0,.16,.08],[.49,-3,.25,.35],[.62,-6,.34,.65],[.78,0,.05,.18],[.91,0,0,0]],
+  free:[[0,10,-30,32],[.20,-43,-47,20],[.33,-52,-42,27],[.42,-29,-28,24],[.62,-16,-20,20],[.78,8,-30,32],[.91,10,-30,32]],
+  incoming:[205,-65],outgoing:[-190,-85]},
+ badminton:{head:57,contact:.42,
+  arm:[[0,.60,.55,1.50],[.20,1.75,-.70,1.70],[.33,1.90,-.90,1.95],[.42,2.55,1.0,.38],[.455,2.15,2.0,.32],[.49,1.35,1.90,.50],[.62,.60,2.30,1.40],[.80,.60,.55,1.50]],
+  wrist:[[0,.80,.70,1.20],[.20,.65,-.60,-2.0],[.33,.45,-.90,-2.4],[.42,.20,.35,0],[.455,.22,.70,.10],[.49,.30,1.15,.35],[.62,.45,1.70,.70],[.80,.80,.70,1.20]],
+  body:[[0,0,0,0],[.20,4,-.28,-.48],[.33,2,-.04,-.35],[.42,0,.15,.10],[.49,-3,.25,.40],[.62,-4,.30,.52],[.80,0,0,0]],
+  free:[[0,-20,-27,22],[.20,-48,-105,15],[.33,-45,-112,23],[.42,-25,-40,22],[.62,-23,-15,18],[.80,-20,-27,22]],
+  incoming:[165,-225],outgoing:[-150,-15]}
 };
+const sample=(keys,phase)=>sampleAnglePath(keys.map(([t,...v])=>[t*TAU,...v]),phase);
+const cross=(a,b)=>({x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x});
+function turn(v,yaw){return {x:v.x*Math.cos(yaw)-v.z*Math.sin(yaw),y:v.y,z:v.x*Math.sin(yaw)+v.z*Math.cos(yaw)};}
+function hittingArm(start,elevation,sweep,flex,swivel,chestYaw){
+ const upper={x:Math.sin(elevation)*Math.cos(sweep),y:Math.cos(elevation),z:Math.sin(elevation)*Math.sin(sweep)};
+ // This orthonormal hinge frame follows the upper arm continuously, avoiding
+ // the elbow flips caused by solving a moving hand against a fixed IK pole.
+ const tangent={x:Math.cos(elevation)*Math.cos(sweep),y:-Math.sin(elevation),z:Math.cos(elevation)*Math.sin(sweep)};
+ const lateral={x:-Math.sin(sweep),y:0,z:Math.cos(sweep)};
+ const bend=add(mul(tangent,Math.cos(swivel)),mul(lateral,Math.sin(swivel)));
+ const forearm=turn(add(mul(upper,Math.cos(flex)),mul(bend,Math.sin(flex))),chestYaw);
+ const elbow=add(start,mul(turn(upper,chestYaw),39)),wrist=add(elbow,mul(forearm,33));
+ return {...limb(start,elbow,wrist,1,'arm'),forearm,elbowFlex:flex};
+}
+function racketFrame(arm,cock,roll,length,sport){
+ const v=arm.forearm;
+ let up=unit(sub({x:0,y:-1,z:0},mul(v,-v.y)));
+ // The forearm never aligns exactly with vertical in these authored poses.
+ const sideways=unit(cross(v,up));
+ const cockPlane=add(mul(up,Math.cos(roll)),mul(sideways,Math.sin(roll)));
+ const direction=add(mul(v,Math.cos(cock)),mul(cockPlane,Math.sin(cock)));
+ const worldHead=add(arm.world.wrist,mul(direction,length)),head=project(worldHead),grip=arm.wrist;
+ const span=Math.hypot(head.x-grip.x,head.y-grip.y);
+ return {sport,grip,head,worldHead,shaftLength:length,direction,depth:worldHead.z,
+  angle:Math.atan2(head.y-grip.y,head.x-grip.x),headDistance:span,
+  scale:.65+.35*Math.min(1,span/length),faceScale:.4+.6*Math.abs(Math.cos(roll-.65))};
+}
 export function courtPose(sport,phase,resting=false,withProjectile=true){
- const c=COURT[sport];if(!c)throw new Error('Unknown court sport');
- const t=((phase/TAU)%1+1)%1;
- const [wx,wy,wz]=sampleAnglePath(c.keys.map(k=>[k[0]*TAU,...k.slice(1,4)]),resting?0:phase);
- const angle=sampleAnglePath(c.keys.map(k=>[k[0]*TAU,k[4],0,0]),resting?0:phase)[0];
- const transfer=resting?0:Math.sin((t-.15)*TAU);
- const hip={x:transfer*c.body,y:8+(resting?0:2*Math.sin(phase)**2)};
- const neck={x:hip.x-transfer*3,y:hip.y-78};
+ const c=STROKES[sport];if(!c)throw new Error('Unknown court sport');
+ const t=((phase/TAU)%1+1)%1,p=resting?0:phase;
+ const [elevation,sweep,flex]=sample(c.arm,p),[cock,roll,swivel]=sample(c.wrist,p);
+ const [weight,hipYaw,chestYaw]=sample(c.body,p);
+ const hip={x:weight,y:8+(resting?0:1.5*Math.sin(phase)**2)};
+ const neck={x:hip.x-(sport==='badminton'?2:1)*Math.sin(chestYaw),y:hip.y-78};
  const legs=[-1,1].map(side=>{
-  const start={x:hip.x+side*13,y:hip.y,z:side*transfer*3};
-  const ankle={x:side*30,y:122,z:side*5};
-  const solved=chain(start,ankle,62,60,{x:side*.15,y:0,z:1});
+  const start=add({x:hip.x,y:hip.y,z:0},turn({x:side*13,y:0,z:0},hipYaw));
+  const solved=chain(start,{x:side*30,y:122,z:side*5},62,60,{x:side*.15,y:0,z:1});
   return limb(start,solved.middle,solved.end,side,'leg');
  });
- const balance=resting?0:Math.sin(Math.PI*Math.max(0,Math.min(1,(t-.08)/.62)))**2;
- const arms=[-1,1].map(side=>{
-  const start={x:neck.x+side*25,y:neck.y+16,z:-side*transfer*6};
-  const target=side===1?{x:hip.x+wx,y:hip.y+wy,z:wz}:
-   {x:hip.x-30+(c.free[0]+30)*balance,y:hip.y-6+(c.free[1]+6)*balance,z:12+(c.free[2]-12)*balance};
-  const solved=chain(start,target,39,33,side===1?{x:.65,y:.8,z:-.3}:{x:-.35,y:1,z:-.15});
-  return {...limb(start,solved.middle,solved.end,side,'arm'),handOpen:side===-1};
- });
- const result=rig(hip,neck,legs,arms,phase,resting),grip=arms.find(a=>a.side===1).wrist;
- const head={x:grip.x+Math.cos(angle)*c.head,y:grip.y+Math.sin(angle)*c.head};
- result.equipment={sport,grip,angle,head,headDistance:c.head};
+ const shoulders=[-1,1].map(side=>add({x:neck.x,y:neck.y+16,z:0},turn({x:side*25,y:0,z:0},chestYaw)));
+ const dominant=hittingArm(shoulders[1],elevation,sweep,flex,swivel,chestYaw);
+ const [fx,fy,fz]=sample(c.free,p),freeTarget={x:hip.x+fx,y:hip.y+fy,z:fz};
+ const freeSolved=chain(shoulders[0],freeTarget,39,33,{x:-.35,y:1,z:-.15});
+ const free={...limb(shoulders[0],freeSolved.middle,freeSolved.end,-1,'arm'),handOpen:true};
+ const result=rig(hip,neck,legs,[free,dominant],phase,resting);
+ result.torso={chestScale:Math.cos(chestYaw),hipYaw,chestYaw};
+ result.stroke={elevation,sweep,flex,cock,roll,swivel};
+ result.equipment=racketFrame(dominant,cock,roll,c.head,sport);
  if(!resting&&withProjectile){
-  // The contact point comes from the same rig, so projectiles meet the strings.
   const contactHead=courtPose(sport,c.contact*TAU,false,false).equipment.head;
   const start=.10,end=.76;
   if(t>=start&&t<=end){

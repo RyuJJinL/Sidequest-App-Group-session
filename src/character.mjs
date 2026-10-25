@@ -76,6 +76,7 @@ function drawFrontBody(ctx,motion,jacket){
  capsule(ctx,{x:neck.x,y:neck.y-12},{x:neck.x,y:neck.y+12},17,SKIN);
  path(ctx,[[hip.x-23,hip.y-10],[hip.x+23,hip.y-10],[hip.x+26,hip.y+25],[hip.x+3,hip.y+27],[hip.x,hip.y+14],[hip.x-3,hip.y+27],[hip.x-26,hip.y+25]],jacket?'#be8c8d':CREAM);
  ctx.strokeStyle=jacket?'#d9a4a1':'#c6b397';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(hip.x,hip.y-2);ctx.lineTo(hip.x,hip.y+14);ctx.stroke();
+ ctx.save();ctx.translate(neck.x,neck.y);ctx.scale(motion.torso?.chestScale??1,1);ctx.translate(-neck.x,-neck.y);
  path(ctx,[[neck.x-20,neck.y+6],[neck.x-27,neck.y+18],[hip.x-23,hip.y-6],[hip.x+23,hip.y-6],[neck.x+27,neck.y+18],[neck.x+20,neck.y+6]],jacket?SLATE:SAGE);
  if(jacket){
   path(ctx,[[neck.x-20,neck.y+6],[neck.x-26,neck.y+26],[neck.x,neck.y+42],[neck.x+26,neck.y+26],[neck.x+20,neck.y+6]],PEACH);
@@ -85,5 +86,6 @@ function drawFrontBody(ctx,motion,jacket){
   path(ctx,[[neck.x-13,neck.y+4],[neck.x,neck.y+20],[neck.x+13,neck.y+4],[neck.x+15,neck.y+19],[neck.x+5,neck.y+16],[neck.x,neck.y+27],[neck.x-5,neck.y+16],[neck.x-15,neck.y+19]],CREAM);
   ctx.strokeStyle=CREAM;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(neck.x,neck.y+24);ctx.lineTo(neck.x,neck.y+39);ctx.stroke();
  }
+ ctx.restore();
  for(const side of motion.armOrder) frontArm(ctx,motion.arms.find(a=>a.side===side),jacket);
 }

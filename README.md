@@ -22,7 +22,7 @@ npm test
 - Two illustrated outfits based on the supplied character photos and videos: sage court wear and peach/slate track wear. Ponytail, striped headband, facial details and sneakers follow the articulated rig.
 - Front-facing running with separate shoulder and hip anchors, opposite arm/leg timing, depth-based knee recovery and forward-facing shoes.
 - Forward walking with relaxed opposite arm swings, low foot lift and continuous ground contact.
-- Distinct pickleball forehand, tennis preparation/contact/follow-through and badminton overhead strokes, with planted feet, balanced free arms and equipment attached to the hand.
+- Joint-driven pickleball and tennis forehands and a badminton overhead stroke: hips/chest load before the elbow opens into contact, the racket releases its wrist lag, and the arm decelerates across the body. Supporting arms balance or guide the stroke; racket faces rotate with the forearm.
 - Balls and shuttlecocks meet the paddle or strings at contact; the shuttle feathers follow its flight direction.
 - Focus, short break and long break timers; pause, resume and reset.
 - A long break after every fourth completed focus round. New rounds start manually.
@@ -35,6 +35,6 @@ Completed rounds and active countdown are per page session; reloading resets the
 
 ## StykAnimate integration
 
-`vendor/stykanimate/motion.mjs` includes the upstream `defaultFigure` topology from `src/demo.mjs` and `sampleAnglePath` from `src/rig-angle-path.mjs`. The illustrated runtime uses depth-based frontal rigs with fixed limb lengths. Running and walking interpolate thigh/knee cycles; racket sports interpolate hand targets and use two-bone inverse kinematics. These cyclic curves use the upstream periodic interpolator. The upstream figure topology is retained in the vendor source as a reference. The sport choreography, props and timer interface are new Sidequest code. This is a small runtime adaptation, not the full StykAnimate editor, and does not import/export `.styk` projects.
+`vendor/stykanimate/motion.mjs` includes the upstream `defaultFigure` topology from `src/demo.mjs` and `sampleAnglePath` from `src/rig-angle-path.mjs`. The illustrated runtime uses depth-based frontal rigs with fixed limb lengths. Running and walking interpolate thigh/knee cycles; racket sports interpolate shoulder elevation/sweep, elbow flexion, forearm swivel, wrist cock and roll. Forward kinematics determines the hitting hand, while two-bone inverse kinematics positions the supporting arm and planted legs. Racket direction derives from the forearm, with depth projection and forearm roll controlling its appearance. These cyclic curves use the upstream periodic interpolator. The upstream figure topology is retained in the vendor source as a reference. The sport choreography, props and timer interface are new Sidequest code. This is a small runtime adaptation, not the full StykAnimate editor, and does not import/export `.styk` projects.
 
 See [upstream attribution and pinned source references](vendor/stykanimate/NOTICE.md). This project is distributed under GPL-3.0-or-later; see [LICENSE](LICENSE). Sidequest is independently developed and is not an official StykAnimate product.

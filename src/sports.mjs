@@ -4,9 +4,9 @@ import {frontRunPose} from './running.mjs';
 import {drawIllustratedFigure} from './character.mjs';
 export const SPORTS = {
   running: {name: 'Running', icon: '↗', verb: 'Find your stride', detail: 'One step. One task. A little further.', period: .85, color: '#c4f17b'},
-  pickleball: {name: 'Pickleball', icon: '◒', verb: 'Get in the zone', detail: 'Small wins make a great rally.', period: 1.65, color: '#f2ca81'},
-  tennis: {name: 'Tennis', icon: '◉', verb: 'Make every minute count', detail: 'Stay present. Play the long game.', period: 1.8, color: '#b6c9ff'},
-  badminton: {name: 'Badminton', icon: '⌁', verb: 'Keep your focus flying', detail: 'Light on your feet. Clear in your mind.', period: 1.6, color: '#f1b9d4'},
+  pickleball: {name: 'Pickleball', icon: '◒', verb: 'Get in the zone', detail: 'Small wins make a great rally.', period: 1.9, color: '#f2ca81'},
+  tennis: {name: 'Tennis', icon: '◉', verb: 'Make every minute count', detail: 'Stay present. Play the long game.', period: 2.2, color: '#b6c9ff'},
+  badminton: {name: 'Badminton', icon: '⌁', verb: 'Keep your focus flying', detail: 'Light on your feet. Clear in your mind.', period: 2.0, color: '#f1b9d4'},
   walking: {name: 'Walking', icon: '↝', verb: 'Move at your own pace', detail: 'Steady progress is still progress.', period: 1.7, color: '#91ddcd'}
 };
 export function pose(sport, phase, resting = false) {
@@ -17,18 +17,18 @@ export function pose(sport, phase, resting = false) {
 export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage') {
   const {front}=pose(sport,phase,resting);
   ctx.save();
-  if(front.equipment?.grip.z<0)drawEquipment(ctx,front.equipment,color);
+  if(front.equipment?.depth<0)drawEquipment(ctx,front.equipment,color);
   drawIllustratedFigure(ctx,front,phase,outfit);
-  if(front.equipment&&front.equipment.grip.z>=0)drawEquipment(ctx,front.equipment,color);
+  if(front.equipment&&front.equipment.depth>=0)drawEquipment(ctx,front.equipment,color);
   if(front.projectile)drawProjectile(ctx,front.projectile,sport,color);
   ctx.restore();
 }
 function drawEquipment(ctx,e,color){
   ctx.save();ctx.translate(e.grip.x,e.grip.y);ctx.rotate(e.angle);
   ctx.lineCap='round';ctx.strokeStyle='#eedfbd';ctx.lineWidth=5;
-  ctx.beginPath();ctx.moveTo(-3,0);ctx.lineTo(e.sport==='pickleball'?24:32,0);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-3,0);ctx.lineTo(e.headDistance*.7,0);ctx.stroke();
   const paddle=e.sport==='pickleball',rx=paddle?15:e.sport==='badminton'?23:25,ry=paddle?18:e.sport==='badminton'?16:19;
-  ctx.translate(e.headDistance,0);ctx.lineWidth=2.5;ctx.strokeStyle='#f2dfbd';
+  ctx.translate(e.headDistance,0);ctx.scale(e.scale,e.scale*e.faceScale);ctx.lineWidth=2.5;ctx.strokeStyle='#f2dfbd';
   ctx.beginPath();
   if(paddle){ctx.moveTo(-rx,-ry+5);ctx.quadraticCurveTo(-rx,-ry,-rx+6,-ry);ctx.lineTo(rx-6,-ry);ctx.quadraticCurveTo(rx,-ry,rx,-ry+6);ctx.lineTo(rx,ry-6);ctx.quadraticCurveTo(rx,ry,rx-6,ry);ctx.lineTo(-rx+6,ry);ctx.quadraticCurveTo(-rx,ry,-rx,ry-6);ctx.closePath();ctx.fillStyle='#9fac86';ctx.fill();ctx.stroke();ctx.strokeStyle='#e9dfb7';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-6,-ry+2);ctx.lineTo(9,ry-2);ctx.stroke();}
   else{ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);ctx.stroke();ctx.save();ctx.clip();ctx.lineWidth=.8;ctx.strokeStyle='#f2dfbd99';for(let i=-24;i<=24;i+=6){ctx.beginPath();ctx.moveTo(-rx,i);ctx.lineTo(rx,i);ctx.moveTo(i,-ry);ctx.lineTo(i,ry);ctx.stroke();}ctx.restore();}
