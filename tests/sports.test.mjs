@@ -2,8 +2,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {SPORTS,pose,jointPositions} from '../src/sports.mjs';
 import {sampleAnglePath} from '../vendor/stykanimate/motion.mjs';
-test('all five sports loop continuously and preserve native bone lengths',()=>{
- for(const sport of Object.keys(SPORTS)){
+test('planar sports loop continuously and preserve native bone lengths',()=>{
+ for(const sport of Object.keys(SPORTS).filter(s=>s!=='running')){
   const first=pose(sport,0),last=pose(sport,2*Math.PI);
   first.angles.forEach((a,i)=>assert.ok(Math.abs(a-last.angles[i])<1e-9));
   for(let phase=0;phase<7;phase+=.1)for(const resting of [true,false]){

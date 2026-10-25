@@ -20,6 +20,7 @@ npm test
 ## Features
 
 - Two illustrated outfits based on the supplied character photos and videos: sage court wear and peach/slate track wear. Ponytail, striped headband, facial details and sneakers follow the articulated rig.
+- Front-facing running with separate shoulder and hip anchors, opposite arm/leg timing, depth-based knee recovery and forward-facing shoes.
 - Five sport companions, including rackets/paddle and ball/shuttlecock motion.
 - Focus, short break and long break timers; pause, resume and reset.
 - A long break after every fourth completed focus round. New rounds start manually.

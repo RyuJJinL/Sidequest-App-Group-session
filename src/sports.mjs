@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import {defaultFigure, sampleAnglePath} from '../vendor/stykanimate/motion.mjs';
+import {frontRunPose} from './running.mjs';
 import {drawIllustratedFigure} from './character.mjs';
 export const SPORTS = {
   running: {name: 'Running', icon: '↗', verb: 'Find your stride', detail: 'One step. One task. A little further.', period: .85, color: '#c4f17b'},
@@ -13,13 +14,14 @@ const figure = defaultFigure();
 // Native StykAnimate segment topology; all angles are absolute screen angles.
 export function pose(sport, phase, resting = false) {
   if (!SPORTS[sport]) throw new Error('Unknown sport');
-  const s = Math.sin(phase), run = sport === 'running', gait = run || sport === 'walking';
+  if (sport === 'running') return {front:frontRunPose(phase,resting),bob:0};
+  const s = Math.sin(phase);
   let angles;
   if (resting) angles = [-1.57, -1.57, 1.35, 1.1, 1.8, 1.95, 1.42, 1.57, 1.72, 1.57];
-  else if (gait) angles = [-1.57 + (run ? .19 : .035), -1.57,
+  else if (sport === 'walking') angles = [-1.57 + .035, -1.57,
     1.57 - s * .65, .35 - s * .5, 1.57 + s * .65, .35 + s * .5,
-    1.57 + s * (run ? .82 : .48), 1.57 + Math.max(0, -s) * (run ? 1.7 : .7),
-    1.57 - s * (run ? .82 : .48), 1.57 + Math.max(0, s) * (run ? 1.7 : .7)];
+    1.57 + s * .48, 1.57 + Math.max(0, -s) * .7,
+    1.57 - s * .48, 1.57 + Math.max(0, s) * .7];
   else {
     // Use upstream's periodic monotone Hermite sampler for the racket swing.
     const overhead = sport === 'badminton';
@@ -30,7 +32,7 @@ export function pose(sport, phase, resting = false) {
     angles = [-1.5 + s * .07, -1.5, swing[0], swing[1], 2.3, 1.6,
       1.12 + s * .12, 1.7, 2.0 + s * .12, 1.35];
   }
-  return {figure, angles, bob: resting ? Math.sin(phase) * 1.5 : Math.cos(phase * 2) * (run ? 6 : 2)};
+  return {figure, angles, bob: resting ? Math.sin(phase) * 1.5 : Math.cos(phase * 2) * 2};
 }
 export function jointPositions({figure, angles}) {
   const points = new Map([[0, {x: 0, y: 0}]]);
@@ -41,9 +43,9 @@ export function jointPositions({figure, angles}) {
   return points;
 }
 export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage') {
-  const p = pose(sport, phase, resting), points = jointPositions(p);
-  ctx.save(); ctx.translate(0, p.bob);
-  drawIllustratedFigure(ctx, points, phase, outfit);
+  const p = pose(sport, phase, resting), points = p.front ? null : jointPositions(p);
+  ctx.save(); ctx.translate(0, p.front ? 0 : p.bob);
+  drawIllustratedFigure(ctx, points, phase, outfit, p.front);
   if (!['running', 'walking'].includes(sport)) {
     const hand = points.get(4), direction = p.angles[3] - .5;
     ctx.save();ctx.translate(hand.x,hand.y);ctx.rotate(direction);

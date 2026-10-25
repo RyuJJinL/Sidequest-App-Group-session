@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs",
-    "check": "node --check src/app.mjs && node --check src/timer.mjs && node --check src/character.mjs && node --check src/sports.mjs && node --check vendor/stykanimate/motion.mjs && node --check server.mjs",
+    "check": "node --check src/app.mjs && node --check src/timer.mjs && node --check src/running.mjs && node --check src/character.mjs && node --check src/sports.mjs && node --check vendor/stykanimate/motion.mjs && node --check server.mjs",
     "test": "node --test tests/*.test.mjs"
   }
 }
