@@ -1,0 +1,13 @@
+{
+  "name": "sidequest-sports-focus",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "check": "node --check src/app.mjs && node --check src/timer.mjs && node --check src/character.mjs && node --check src/sports.mjs && node --check vendor/stykanimate/motion.mjs && node --check server.mjs",
+    "test": "node --test tests/*.test.mjs"
+  }
+}
