@@ -1,3 +1,4 @@
+import {drawFrontPart} from './arm-depth.mjs';
 // SPDX-License-Identifier: GPL-3.0-or-later
 import {frontWalkPose,courtPose} from './actions.mjs';
 import {frontRunPose} from './running.mjs';
@@ -6,7 +7,7 @@ export const SPORTS = {
   running: {name: 'Running', icon: '↗', verb: 'Find your stride', detail: 'One step. One task. A little further.', period: .85, color: '#c4f17b'},
   pickleball: {name: 'Pickleball', icon: '◒', verb: 'Get in the zone', detail: 'Small wins make a great rally.', period: 1.9, color: '#f2ca81'},
   tennis: {name: 'Tennis', icon: '◉', verb: 'Make every minute count', detail: 'Stay present. Play the long game.', period: 2.2, color: '#b6c9ff'},
-  badminton: {name: 'Badminton', icon: '⌁', verb: 'Keep your focus flying', detail: 'Light on your feet. Clear in your mind.', period: 2.0, color: '#f1b9d4'},
+  badminton: {name: 'Badminton', icon: '⌁', verb: 'Keep your focus flying', detail: 'Light on your feet. Clear in your mind.', period: 2.8, color: '#f1b9d4'},
   walking: {name: 'Walking', icon: '↝', verb: 'Move at your own pace', detail: 'Steady progress is still progress.', period: 1.7, color: '#91ddcd'}
 };
 export function pose(sport, phase, resting = false) {
@@ -17,9 +18,13 @@ export function pose(sport, phase, resting = false) {
 export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage') {
   const {front}=pose(sport,phase,resting);
   ctx.save();
-  if(front.equipment?.depth<0)drawEquipment(ctx,front.equipment,color);
+  if(front.equipment&&(front.shoulderRig||front.equipment.depth<0))drawEquipment(ctx,front.equipment,color);
   drawIllustratedFigure(ctx,front,phase,outfit);
-  if(front.equipment&&front.equipment.depth>=0)drawEquipment(ctx,front.equipment,color);
+  if(front.equipment){
+   const e=front.equipment;
+   if(front.shoulderRig)drawFrontPart(ctx,e.worldGrip,e.worldHead,e.grip,e.head,()=>drawEquipment(ctx,e,color));
+   else if(e.depth>=0)drawEquipment(ctx,e,color);
+  }
   if(front.projectile)drawProjectile(ctx,front.projectile,sport,color);
   ctx.restore();
 }

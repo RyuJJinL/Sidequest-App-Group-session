@@ -59,39 +59,44 @@ const STROKES={
   arm:[[0,.45,.55,1.40],[.12,.48,.10,1.42],[.23,.52,-.45,1.40],[.33,.60,-.35,1.15],[.42,1.05,.65,.40],[.49,1.25,1.65,.70],[.62,1.45,2.10,1.25],[.78,.60,.95,1.40],[.91,.45,.55,1.40]],
   wrist:[[0,1.10,.65,1.65],[.20,1.20,.30,1.80],[.33,1.25,.15,1.75],[.42,.65,.65,1.65],[.49,.85,.20,1.10],[.62,1.10,.65,.90],[.78,1.0,.60,1.65],[.91,1.10,.65,1.65]],
   body:[[0,0,0,0],[.12,3,-.17,-.30],[.23,7,-.34,-.78],[.33,4,-.02,-.60],[.42,0,.16,.08],[.49,-3,.25,.35],[.62,-6,.34,.65],[.78,0,.05,.18],[.91,0,0,0]],
-  free:[[0,10,-30,32],[.12,23,-25,31],[.23,21,-21,17],[.30,-18,-33,27],[.36,-41,-38,28],[.42,-29,-28,24],[.62,-16,-20,20],[.78,8,-30,32],[.91,10,-30,32]],
+  support:[[0,.30,1.05,1.60],[.12,.40,1.40,1.50],[.23,.48,1.50,1.45],[.36,.55,1.10,1.20],[.46,.50,.65,1.15],[.64,.35,1.1,1.60],[.82,.30,1.05,1.60]],
+  supportSwivel:[[0,1.85,0,0],[.23,1.85,0,0],[.36,1.50,0,0],[.46,1.65,0,0],[.64,1.85,0,0]],
   incoming:[205,-65],outgoing:[-190,-85]},
  badminton:{head:57,contact:.42,
-  arm:[[0,.60,.55,1.50],[.20,1.75,-.70,1.70],[.33,1.90,-.90,1.95],[.42,2.55,1.0,.38],[.455,2.15,2.0,.32],[.49,1.35,1.90,.50],[.62,.60,2.30,1.40],[.80,.60,.55,1.50]],
-  wrist:[[0,.80,.70,1.20],[.20,.65,-.60,-2.0],[.33,.45,-.90,-2.4],[.42,.20,.35,0],[.455,.22,.70,.10],[.49,.30,1.15,.35],[.62,.45,1.70,.70],[.80,.80,.70,1.20]],
-  body:[[0,0,0,0],[.20,4,-.28,-.48],[.33,2,-.04,-.35],[.42,0,.15,.10],[.49,-3,.25,.40],[.62,-4,.30,.52],[.80,0,0,0]],
-  free:[[0,-20,-27,22],[.20,-48,-105,15],[.33,-45,-112,23],[.42,-25,-40,22],[.62,-23,-15,18],[.80,-20,-27,22]],
-  incoming:[165,-225],outgoing:[-150,-15]}
+  arm:[[0,.60,.55,1.50],[.18,1.25,.30,1.75],[.30,1.45,.25,1.90],[.36,1.65,.45,1.45],[.42,2.10,.85,.60],[.54,1.15,1.90,.75],[.68,.45,2.10,1.05],[.88,.60,.55,1.50]],
+  wrist:[[0,.80,1.25,1.20],[.18,.95,1.80,.45],[.30,.90,2.0,.35],[.36,.65,1.30,.25],[.42,.22,.45,.10],[.54,.35,.90,.70],[.68,.50,1.0,.95],[.88,.80,1.25,1.20]],
+  body:[[0,0,0,0],[.18,3,-.20,-.32],[.30,3,-.18,-.38],[.36,2,-.04,-.22],[.42,0,.12,.06],[.54,-3,.22,.35],[.68,-2,.15,.22],[.88,0,0,0]],
+  support:[[0,.38,.90,1.45],[.18,.50,.65,1.50],[.30,.55,.60,1.45],[.42,.40,.90,1.40],[.54,.45,1.0,1.20],[.68,.35,1.05,1.40],[.88,.38,.90,1.45]],
+  supportSwivel:[[0,1.65,0,0],[.18,1.40,0,0],[.30,1.35,0,0],[.42,1.65,0,0],[.68,1.65,0,0]],
+  incoming:[165,-205],outgoing:[-150,-15]}
 };
 const sample=(keys,phase)=>sampleAnglePath(keys.map(([t,...v])=>[t*TAU,...v]),phase);
 const cross=(a,b)=>({x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x});
 function turn(v,yaw){return {x:v.x*Math.cos(yaw)-v.z*Math.sin(yaw),y:v.y,z:v.x*Math.sin(yaw)+v.z*Math.cos(yaw)};}
-function hittingArm(start,elevation,sweep,flex,swivel,chestYaw){
+function articulatedArm(start,elevation,sweep,flex,swivel,chestYaw,side=1){
  const upper={x:Math.sin(elevation)*Math.cos(sweep),y:Math.cos(elevation),z:Math.sin(elevation)*Math.sin(sweep)};
  // This orthonormal hinge frame follows the upper arm continuously, avoiding
  // the elbow flips caused by solving a moving hand against a fixed IK pole.
  const tangent={x:Math.cos(elevation)*Math.cos(sweep),y:-Math.sin(elevation),z:Math.cos(elevation)*Math.sin(sweep)};
  const lateral={x:-Math.sin(sweep),y:0,z:Math.cos(sweep)};
  const bend=add(mul(tangent,Math.cos(swivel)),mul(lateral,Math.sin(swivel)));
- const forearm=turn(add(mul(upper,Math.cos(flex)),mul(bend,Math.sin(flex))),chestYaw);
- const elbow=add(start,mul(turn(upper,chestYaw),39)),wrist=add(elbow,mul(forearm,33));
- return {...limb(start,elbow,wrist,1,'arm'),forearm,elbowFlex:flex};
+ const mirror=v=>({...v,x:v.x*side});
+ const forearm=turn(mirror(add(mul(upper,Math.cos(flex)),mul(bend,Math.sin(flex)))),chestYaw);
+ const wristUp=turn(mirror(add(mul(upper,-Math.sin(flex)),mul(bend,Math.cos(flex)))),chestYaw);
+ const elbow=add(start,mul(turn(mirror(upper),chestYaw),39)),wrist=add(elbow,mul(forearm,33));
+ return {...limb(start,elbow,wrist,side,'arm'),forearm,wristUp,elbowFlex:flex};
 }
 function racketFrame(arm,cock,roll,length,sport){
  const v=arm.forearm;
- let up=unit(sub({x:0,y:-1,z:0},mul(v,-v.y)));
- // The forearm never aligns exactly with vertical in these authored poses.
+ const up=sport==='badminton'?arm.wristUp:unit(sub({x:0,y:-1,z:0},mul(v,-v.y)));
+ // Badminton inherits the elbow frame through vertical; global-up projection
+ // would spin abruptly as the forearm approaches a vertical overhead reach.
  const sideways=unit(cross(v,up));
  const cockPlane=add(mul(up,Math.cos(roll)),mul(sideways,Math.sin(roll)));
  const direction=add(mul(v,Math.cos(cock)),mul(cockPlane,Math.sin(cock)));
  const worldHead=add(arm.world.wrist,mul(direction,length)),head=project(worldHead),grip=arm.wrist;
  const span=Math.hypot(head.x-grip.x,head.y-grip.y);
- return {sport,grip,head,worldHead,shaftLength:length,direction,depth:worldHead.z,
+ return {sport,grip,head,worldGrip:arm.world.wrist,worldHead,shaftLength:length,direction,depth:worldHead.z,
   angle:Math.atan2(head.y-grip.y,head.x-grip.x),headDistance:span,
   scale:.65+.35*Math.min(1,span/length),faceScale:.4+.6*Math.abs(Math.cos(roll-.65))};
 }
@@ -108,13 +113,19 @@ export function courtPose(sport,phase,resting=false,withProjectile=true){
   return limb(start,solved.middle,solved.end,side,'leg');
  });
  const shoulders=[-1,1].map(side=>add({x:neck.x,y:neck.y+16,z:0},turn({x:side*25,y:0,z:0},chestYaw)));
- const dominant=hittingArm(shoulders[1],elevation,sweep,flex,swivel,chestYaw);
- const [fx,fy,fz]=sample(c.free,p),freeTarget={x:hip.x+fx,y:hip.y+fy,z:fz};
- const freeSolved=chain(shoulders[0],freeTarget,39,33,{x:-.35,y:1,z:-.15});
- const free={...limb(shoulders[0],freeSolved.middle,freeSolved.end,-1,'arm'),handOpen:true};
+ const dominant=articulatedArm(shoulders[1],elevation,sweep,flex,swivel,chestYaw);
+ let free;
+ if(c.support){
+  const [e,s,f]=sample(c.support,p),sw=sample(c.supportSwivel,p)[0];
+  free={...articulatedArm(shoulders[0],e,s,f,sw,chestYaw,-1),handOpen:true};
+ }else{
+  const [fx,fy,fz]=sample(c.free,p),freeTarget={x:hip.x+fx,y:hip.y+fy,z:fz};
+  const solved=chain(shoulders[0],freeTarget,39,33,{x:-.35,y:1,z:-.15});
+  free={...limb(shoulders[0],solved.middle,solved.end,-1,'arm'),handOpen:true};
+ }
  const result=rig(hip,neck,legs,[free,dominant],phase,resting);
  result.torso={chestScale:Math.cos(chestYaw),hipYaw,chestYaw};
- if(sport==='tennis'){
+ if(sport==='tennis'||sport==='badminton'){
   // The shirt and sleeves use the actual projected clavicle anchors, rather
   // than scaling an unrelated front-facing shirt over rotating shoulders.
   result.shoulderRig={

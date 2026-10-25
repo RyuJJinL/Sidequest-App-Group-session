@@ -30,12 +30,12 @@ test('hands, elbows and racket heads stay continuous through every stroke and lo
   assert.ok(distance(a.equipment.worldHead,b.equipment.worldHead)<1e-8);
  }
 });
-test('tennis wraps to the opposite shoulder and badminton guides, loads, then follows down',()=>{
+test('tennis wraps to the opposite shoulder and badminton uses a compact preparation and downward finish',()=>{
  const tennis=courtPose('tennis',.62*TAU);
  assert.ok(tennis.equipment.grip.x<tennis.hip.x && tennis.equipment.grip.y<tennis.neck.y+20);
  const load=courtPose('badminton',.33*TAU),hit=courtPose('badminton',.42*TAU),finish=courtPose('badminton',.62*TAU);
- assert.ok(load.arms[0].wrist.y<load.neck.y-20,'free hand guides upward during preparation');
+ assert.ok(load.arms[0].wrist.y>load.neck.y+20 && load.arms[0].wrist.y<load.hip.y+5,'reference stroke keeps the free hand near the chest');
  assert.ok(load.equipment.depth<0,'racket drops behind the torso during loading');
- assert.ok(hit.equipment.grip.y<load.equipment.grip.y-50);
+ assert.ok(hit.equipment.grip.y<hit.neck.y-25);
  assert.ok(finish.equipment.grip.y>hit.equipment.grip.y+60 && finish.equipment.grip.x<finish.hip.x);
 });

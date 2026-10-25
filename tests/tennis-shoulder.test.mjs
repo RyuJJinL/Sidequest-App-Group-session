@@ -16,11 +16,12 @@ test('tennis sleeve anchors track the actual clavicles through the unit turn',()
   }
  }
 });
-test('preparation keeps the elbow down and hands together before releasing the guide hand',()=>{
+test('preparation keeps the racket elbow relaxed and the free arm attached',()=>{
  for(let t=.12;t<=.33;t+=.005){
   const r=courtPose('tennis',t*TAU),arm=r.arms[1];
   assert.ok(arm.world.elbow.y-arm.world.shoulder.y>=32,'preparation upper arm stays relaxed below the shoulder');
-  if(t<=.23)assert.ok(distance(r.arms[0].wrist,r.arms[1].wrist)<35,'guide hand follows the racket through the first part of preparation');
+  const free=r.arms[0].world;
+  if(free.shoulder.z>=0)assert.ok(free.elbow.z>=0,'a front-facing free shoulder must not pull its elbow behind the torso');
  }
 });
 test('the loaded racket arm is behind the chest and rotates forward into contact',()=>{

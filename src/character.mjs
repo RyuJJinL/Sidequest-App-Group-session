@@ -1,3 +1,4 @@
+import {drawFrontPart} from './arm-depth.mjs';
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original Canvas artwork, interpreted from the user's two character references.
 // The joint coordinates are evaluated from StykAnimate's articulated figure.
@@ -73,12 +74,12 @@ function drawFrontBody(ctx,motion,jacket){
   frontShoe(ctx,leg,jacket?'#bb8788':SAGE);
  }
  // In a unit turn, each limb segment passes behind/in front independently.
- if(motion.shoulderRig) drawTennisArms(ctx,motion,jacket,true);
+ if(motion.shoulderRig) drawAttachedArms(ctx,motion,jacket,true);
  // Neck goes behind the shirt and its collar.
  capsule(ctx,{x:neck.x,y:neck.y-12},{x:neck.x,y:neck.y+12},17,SKIN);
  path(ctx,[[hip.x-23,hip.y-10],[hip.x+23,hip.y-10],[hip.x+26,hip.y+25],[hip.x+3,hip.y+27],[hip.x,hip.y+14],[hip.x-3,hip.y+27],[hip.x-26,hip.y+25]],jacket?'#be8c8d':CREAM);
  ctx.strokeStyle=jacket?'#d9a4a1':'#c6b397';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(hip.x,hip.y-2);ctx.lineTo(hip.x,hip.y+14);ctx.stroke();
- if(motion.shoulderRig) drawTennisShirt(ctx,motion,jacket);
+ if(motion.shoulderRig) drawAttachedShirt(ctx,motion,jacket);
  else {
  ctx.save();ctx.translate(neck.x,neck.y);ctx.scale(motion.torso?.chestScale??1,1);ctx.translate(-neck.x,-neck.y);
  path(ctx,[[neck.x-20,neck.y+6],[neck.x-27,neck.y+18],[hip.x-23,hip.y-6],[hip.x+23,hip.y-6],[neck.x+27,neck.y+18],[neck.x+20,neck.y+6]],jacket?SLATE:SAGE);
@@ -92,7 +93,7 @@ function drawFrontBody(ctx,motion,jacket){
  }
  ctx.restore();
  }
- if(motion.shoulderRig) drawTennisArms(ctx,motion,jacket,false);
+ if(motion.shoulderRig) drawAttachedArms(ctx,motion,jacket,false);
  else for(const side of motion.armOrder) frontArm(ctx,motion.arms.find(a=>a.side===side),jacket);
 }
 
@@ -116,7 +117,7 @@ function attachedSleeve(ctx,root,end,rootWidth,cuffWidth,color,side=0){
  }
  ctx.stroke();
 }
-function tennisUpperArm(ctx,motion,arm,jacket){
+function attachedUpperArm(ctx,motion,arm,jacket){
  const {shoulder,elbow}=arm,root=motion.shoulderRig.roots.find(r=>r.side===arm.side).root;
  const projected=Math.hypot(elbow.x-shoulder.x,elbow.y-shoulder.y)/39;
  const width=.78+.22*Math.min(1,projected);
@@ -130,7 +131,7 @@ function tennisUpperArm(ctx,motion,arm,jacket){
   attachedSleeve(ctx,bandA,bandB,8.4*width,8*width,CREAM);
  }
 }
-function tennisForearm(ctx,arm,jacket){
+function attachedForearm(ctx,arm,jacket){
  const {elbow,wrist}=arm;
  taperedLimb(ctx,elbow,wrist,7.5,6,jacket?SLATE:SKIN);
  // Cover the shared elbow seam with the same surface instead of outlining a
@@ -140,14 +141,19 @@ function tennisForearm(ctx,arm,jacket){
  oval(ctx,0,0,arm.handOpen?6:7,arm.handOpen?9:8,SKIN);
  ctx.strokeStyle='#b67664';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-2,0);ctx.lineTo(3,0);ctx.stroke();ctx.restore();
 }
-function drawTennisArms(ctx,motion,jacket,behind){
- for(const side of motion.armOrder){
-  const arm=motion.arms.find(a=>a.side===side),{world}=arm;
-  if(((world.shoulder.z+world.elbow.z)/2<0)===behind)tennisUpperArm(ctx,motion,arm,jacket);
-  if(((world.elbow.z+world.wrist.z)/2<0)===behind)tennisForearm(ctx,arm,jacket);
+function drawAttachedArms(ctx,motion,jacket,behind){
+ // Keep anatomical order stable; visibility is clipped continuously along each
+ // segment, rather than swapping an entire arm when two average depths cross.
+ for(const arm of motion.arms){
+  const {world}=arm;
+  if(behind){attachedUpperArm(ctx,motion,arm,jacket);attachedForearm(ctx,arm,jacket);}
+  else{
+   drawFrontPart(ctx,world.shoulder,world.elbow,arm.shoulder,arm.elbow,()=>attachedUpperArm(ctx,motion,arm,jacket));
+   drawFrontPart(ctx,world.elbow,world.wrist,arm.elbow,arm.wrist,()=>attachedForearm(ctx,arm,jacket));
+  }
  }
 }
-function drawTennisShirt(ctx,motion,jacket){
+function drawAttachedShirt(ctx,motion,jacket){
  const {neck,hip}=motion,{left,right}=motion.shoulderRig;
  const L={x:left.x-6,y:left.y-7},R={x:right.x+6,y:right.y-7};
  const contour=[[neck.x-13,neck.y+5],[L.x,L.y],[hip.x-23,hip.y-6],[hip.x+23,hip.y-6],[R.x,R.y],[neck.x+13,neck.y+5]];
