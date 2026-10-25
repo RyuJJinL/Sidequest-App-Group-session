@@ -1,0 +1,37 @@
+# Sidequest · Sports Focus
+
+A browser Pomodoro app with animated running, pickleball, tennis, badminton and walking companions. Built using the articulated figure and cyclic motion interpolation from [StykAnimate](https://github.com/filippocalippo/StykAnimate-App).
+
+## Run
+
+Requires Node.js 22 or newer. No dependency installation or desktop app is needed.
+
+```sh
+npm start
+```
+
+Open http://localhost:3000. This is also a static web app: serve the repository directory from any static host. Keep `index.html`, `style.css`, `src/` and `vendor/` together.
+
+```sh
+npm run check
+npm test
+```
+
+## Features
+
+- Two illustrated outfits based on the supplied character photos and videos: sage court wear and peach/slate track wear. Ponytail, striped headband, facial details and sneakers follow the articulated rig.
+- Five sport companions, including rackets/paddle and ball/shuttlecock motion.
+- Focus, short break and long break timers; pause, resume and reset.
+- A long break after every fourth completed focus round. New rounds start manually.
+- Deadline-based countdown catches up after background-tab throttling or device sleep while the page remains open.
+- Custom durations (1–120 minutes), optional completion chime and a session-purpose note.
+- Sport, settings and purpose note are saved locally when browser storage is available.
+- Responsive layout, keyboard-accessible controls and reduced-motion support.
+
+Completed rounds and active countdown are per page session; reloading resets them. Reduced motion shows a static character pose. Completion sounds require a user interaction and browser audio support. There is no account, backend, online group session or notification service in this first version.
+
+## StykAnimate integration
+
+`vendor/stykanimate/motion.mjs` includes the upstream `defaultFigure` topology from `src/demo.mjs` and `sampleAnglePath` from `src/rig-angle-path.mjs`. The Canvas adapter preserves segment IDs, parent joints, lengths and absolute-angle poses; racket sports use upstream periodic interpolation. The sport choreography, props and timer interface are new Sidequest code. This is a small runtime adaptation, not the full StykAnimate editor, and does not import/export `.styk` projects.
+
+See [upstream attribution and pinned source references](vendor/stykanimate/NOTICE.md). This project is distributed under GPL-3.0-or-later; see [LICENSE](LICENSE). Sidequest is independently developed and is not an official StykAnimate product.
