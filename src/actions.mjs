@@ -9,14 +9,14 @@ const unit=a=>mul(a,1/Math.max(1e-9,Math.hypot(a.x,a.y,a.z)));
 const project=p=>({x:p.x*(1+p.z*.0012),y:p.y,z:p.z});
 // Analytic two-bone IK. The pole fixes a natural bend direction, rather than
 // changing the limb's length to reach an authored hand or foot target.
-function chain(start,target,a,b,pole){
+export function chain(start,target,a,b,pole){
  const delta=sub(target,start),axis=unit(delta);
  const distance=Math.max(Math.abs(a-b)+.001,Math.min(a+b-.001,Math.hypot(delta.x,delta.y,delta.z)));
  const along=(a*a-b*b+distance*distance)/(2*distance);
  const bend=unit(sub(pole,mul(axis,dot(pole,axis))));
  return {middle:add(add(start,mul(axis,along)),mul(bend,Math.sqrt(Math.max(0,a*a-along*along)))),end:add(start,mul(axis,distance))};
 }
-function limb(start,middle,end,side,type){
+export function limb(start,middle,end,side,type){
  const world=type==='leg'?{hip:start,knee:middle,ankle:end}:{shoulder:start,elbow:middle,wrist:end};
  return type==='leg'?{side,world,hip:project(start),knee:project(middle),ankle:project(end),scale:1+end.z*.0015}:
   {side,world,shoulder:project(start),elbow:project(middle),wrist:project(end),depth:end.z};

@@ -4,6 +4,7 @@ import {appearanceColors} from './appearance-colors.mjs';
 import {frontWalkPose,courtPose} from './actions.mjs';
 import {frontRunPose} from './running.mjs';
 import {drawIllustratedFigure} from './character.mjs';
+import {GAME_IDS,gamePose,drawGameBack,drawGameTable,drawGameFront} from './games.mjs';
 export const SPORTS = {
   running: {name: 'Running', icon: '↗', verb: 'Find your stride', detail: 'One step. One task. A little further.', period: .85, color: '#c4f17b'},
   pickleball: {name: 'Pickleball', icon: '◒', verb: 'Get in the zone', detail: 'Small wins make a great rally.', period: 1.9, color: '#f2ca81'},
@@ -11,24 +12,32 @@ export const SPORTS = {
   padel: {name: 'Padel', icon: '⠿', verb: 'Find your sweet spot', detail: 'A steady rhythm. A stronger rally.', period: 2.1, color: '#e6b78b'},
   tabletennis: {name: 'Table tennis', icon: '◕', verb: 'Keep your momentum', detail: 'Quick rallies. One focused thought at a time.', period: 1.6, color: '#f0a69d'},
   badminton: {name: 'Badminton', icon: '⌁', verb: 'Keep your focus flying', detail: 'Light on your feet. Clear in your mind.', period: 2.8, color: '#f1b9d4'},
-  walking: {name: 'Walking', icon: '↝', verb: 'Move at your own pace', detail: 'Steady progress is still progress.', period: 1.7, color: '#91ddcd'}
+  walking: {name: 'Walking', icon: '↝', verb: 'Move at your own pace', detail: 'Steady progress is still progress.', period: 1.7, color: '#91ddcd'},
+  basketball: {name:'Basketball',icon:'◍',verb:'Find your bounce',detail:'Keep a steady rhythm. Take the next shot.',period:1.65,color:'#edba7c',previewScale:1.8},
+  volleyball: {name:'Volleyball',icon:'◓',verb:'Set yourself up',detail:'A little lift. A little progress.',period:3.2,color:'#e8d989',previewScale:1.6},
+  football: {name:'Football',icon:'⬡',verb:'Keep moving forward',detail:'One touch at a time. Find your goal.',period:2.6,color:'#a8d6a0',previewScale:1.6},
+  bowling: {name:'Bowling',icon:'∴',verb:'Get into your lane',detail:'A calm approach. A smooth release.',period:3.6,color:'#c3b5e8',previewScale:1.4},
+  chess: {name:'Chess',icon:'♞',verb:'Make your next move',detail:'Give one good thought your full attention.',period:6.4,color:'#d4c7a3',previewScale:1.65},
+  boardgames: {name:'Board games',icon:'⚄',verb:'Enjoy your turn',detail:'Roll with it. Small moves add up.',period:6.2,color:'#e4b7cd',previewScale:1.65}
 };
 export function pose(sport, phase, resting = false) {
   if (!SPORTS[sport]) throw new Error('Unknown sport');
-  const front=sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
+  const front=GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
   return {front,bob:0};
 }
 export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage') {
   const {front}=pose(sport,phase,resting),colors=appearanceColors(outfit);
   ctx.save();
+  if(front.game)drawGameBack(ctx,front);
   if(front.equipment&&(front.shoulderRig||front.equipment.depth<0))drawEquipment(ctx,front.equipment,color,colors);
-  drawIllustratedFigure(ctx,front,phase,outfit);
+  drawIllustratedFigure(ctx,front,phase,outfit,front.game?.seated?{middle:()=>drawGameTable(ctx,front)}:undefined);
   if(front.equipment){
    const e=front.equipment;
    if(front.shoulderRig)drawFrontPart(ctx,e.worldGrip,e.worldHead,e.grip,e.head,()=>drawEquipment(ctx,e,color,colors));
    else if(e.depth>=0)drawEquipment(ctx,e,color,colors);
   }
   if(front.projectile)drawProjectile(ctx,front.projectile,sport,color);
+  if(front.game)drawGameFront(ctx,front,colors);
   ctx.restore();
 }
 function drawEquipment(ctx,e,color,colors){

@@ -118,7 +118,8 @@ export function mountWardrobe({getAppearance,onChange,getSport,onSportChange}){
  function paintPreview(phase,reducedMotion){
   if(!dialog.open)return;
   const sport=getSport(),resting=reducedMotion||!$('#wardrobe-motion').checked;
-  ctx.clearRect(0,0,480,660);ctx.save();ctx.translate(205,350);ctx.scale(1.9,1.9);
+  const scale=SPORTS[sport].previewScale??1.9;
+  ctx.clearRect(0,0,480,660);ctx.save();ctx.translate(205,350);ctx.scale(scale,scale);
   ctx.fillStyle='#102a2255';ctx.beginPath();ctx.ellipse(0,139,57,6,0,0,Math.PI*2);ctx.fill();
   drawCharacter(ctx,sport,phase,resting,SPORTS[sport].color,getAppearance());ctx.restore();
  }

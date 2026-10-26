@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs",
-    "check": "node --check src/head.mjs && node --check src/appearance-colors.mjs && node --check src/wardrobe.mjs && node --check src/wardrobe-ui.mjs && node --check src/app.mjs && node --check src/timer.mjs && node --check src/arm-depth.mjs && node --check src/actions.mjs && node --check src/running.mjs && node --check src/clothing.mjs && node --check src/character.mjs && node --check src/sports.mjs && node --check vendor/stykanimate/motion.mjs && node --check server.mjs",
+    "check": "node --check src/games.mjs && node --check src/head.mjs && node --check src/appearance-colors.mjs && node --check src/wardrobe.mjs && node --check src/wardrobe-ui.mjs && node --check src/app.mjs && node --check src/timer.mjs && node --check src/arm-depth.mjs && node --check src/actions.mjs && node --check src/running.mjs && node --check src/clothing.mjs && node --check src/character.mjs && node --check src/sports.mjs && node --check vendor/stykanimate/motion.mjs && node --check server.mjs",
     "test": "node --test tests/*.test.mjs"
   }
 }

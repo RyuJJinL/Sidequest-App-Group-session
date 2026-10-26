@@ -9,12 +9,12 @@ const INK='#543c35',CREAM='#f1dfbf',SAGE='#94a68a';
 function path(ctx,points,fill,stroke=INK,width=2.5){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke();}}
 function capsule(ctx,a,b,width,color){ctx.lineCap='round';ctx.lineWidth=width+4;ctx.strokeStyle=INK;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.lineWidth=width;ctx.strokeStyle=color;ctx.stroke();}
 function oval(ctx,x,y,rx,ry,color,stroke=INK){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2.5;ctx.stroke();}}
-export function drawIllustratedFigure(ctx,motion,phase,outfit='sage'){
+export function drawIllustratedFigure(ctx,motion,phase,outfit='sage',layers={}){
  const appearance=normalizeAppearance(outfit),colors=appearanceColors(appearance);
  const head={x:motion.neck.x,y:motion.neck.y-27};
  ctx.save();ctx.lineJoin='round';
  drawHairBack(ctx,head,phase,appearance,colors);
- drawFrontBody(ctx,motion,appearance,colors);
+ drawFrontBody(ctx,motion,appearance,colors,layers);
  drawHead(ctx,head,phase,appearance,colors);
  ctx.restore();
 }
@@ -31,7 +31,7 @@ function frontShoe(ctx,leg,color){
 }
 // All outfits use the same skinned surfaces for every sport. The shirt,
 // sleeves and shorts share mesh vertices at their attachment boundaries.
-function drawFrontBody(ctx,motion,appearance,colors){
+function drawFrontBody(ctx,motion,appearance,colors,layers){
  const clothes=buildClothing(motion,appearance);
  for(const side of motion.legOrder){
   drawClothedLeg(ctx,clothes,side);
@@ -43,6 +43,7 @@ function drawFrontBody(ctx,motion,appearance,colors){
  const {neck}=motion;
  capsule(ctx,{x:neck.x,y:neck.y-12},{x:neck.x,y:neck.y+12},17,colors.skin);
  drawClothedShorts(ctx,clothes);
+ layers.middle?.();
  drawClothedTorso(ctx,clothes);
  for(const arm of motion.arms)drawClothedArm(ctx,clothes,arm.side,true);
 }

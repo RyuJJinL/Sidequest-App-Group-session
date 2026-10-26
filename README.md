@@ -1,6 +1,6 @@
 # Sidequest · Sports Focus
 
-A browser Pomodoro app with animated running, pickleball, tennis, padel, table tennis, badminton and walking companions. Built using the articulated figure and cyclic motion interpolation from [StykAnimate](https://github.com/filippocalippo/StykAnimate-App).
+A browser Pomodoro app with animated running, pickleball, tennis, padel, table tennis, badminton, walking, basketball, volleyball, football, bowling, chess and board-game companions. Built using the articulated figure and cyclic motion interpolation from [StykAnimate](https://github.com/filippocalippo/StykAnimate-App).
 
 ## Run
 
@@ -29,6 +29,7 @@ npm test
 - Tennis and badminton shoulder sockets and sleeves share the projected collarbone anchors. Arm segments and rackets reveal progressively across the chest, avoiding whole-limb front/back layer switches. The tennis free arm follows a continuous shoulder-led path.
 - Badminton uses the supplied compact-stroke references: chest-height support hand, a stable elbow-relative racket frame, and a slower 2.8-second preparation/contact/follow-through/recovery cycle.
 - Balls and shuttlecocks meet the paddle or strings at contact; the shuttle feathers follow its flight direction.
+- Six additional activities: a palm-synchronized basketball dribble, a two-handed volleyball set, a frontal soccer kick, a bowling delivery with a lane and falling pins, a seated chess knight move, and a seated dice-and-token board-game turn. Ball contact/release and piece pickups share the avatar's pose clock. The table surface is layered between the lower body and arms so hands and clothing remain connected.
 - Focus, short break and long break timers; pause, resume and reset.
 - A long break after every fourth completed focus round. New rounds start manually.
 - Deadline-based countdown catches up after background-tab throttling or device sleep while the page remains open.
@@ -36,7 +37,7 @@ npm test
 - Sport, appearance, settings and purpose note are saved locally when browser storage is available.
 - Responsive layout, keyboard-accessible controls and reduced-motion support.
 
-Completed rounds and active countdown are per page session; reloading resets them. Reduced motion shows a static character pose. Completion sounds require a user interaction and browser audio support. There is no account, backend, online group session or notification service in this first version.
+Completed rounds and active countdown are per page session; reloading resets them. Reduced motion shows a static character pose. Completion sounds require a user interaction and browser audio support. Chess and board games are ambient character animations, not interactive playable boards. There is no account, backend, online group session or notification service in this first version.
 
 ## StykAnimate integration
 
