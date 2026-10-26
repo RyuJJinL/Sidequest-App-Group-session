@@ -11,10 +11,11 @@ const smooth=x=>{x=clamp(x);return x*x*(3-2*x);};
 const point=(x,y,z=0)=>({x,y,z});
 const lerp=(a,b,t)=>point(mix(a.x,b.x,t),mix(a.y,b.y,t),mix(a.z??0,b.z??0,t));
 const sample=(keys,t)=>sampleAnglePath(keys.map(([p,...v])=>[p*TAU,...v]),t*TAU);
-const project=p=>({x:p.x*(1+p.z*.0012),y:p.y,z:p.z});
 const target=(x,y,z=24)=>point(x/(1+z*.0012),y,z);
 const fade=(t,a,b)=>Math.min(smooth((t-a)/.055),smooth((b-t)/.055));
-const setLift=t=>sample([[0,0,14,0],[.18,0,14,0],[.30,4,13,0],[.43,16,12,0],[.56,10,13,0],[.76,0,14,0]],t);
+// Periodic authored timing: load before contact, then extend and recover.
+const receive=t=>sample([[0,17,2,28],[.25,23,8,30],[.42,27,10,32],[.49,19,-2,34],[.60,13,-10,30],[.82,17,2,28]],t);
+const shotBody=t=>sample([[0,12,0,0],[.32,16,0,0],[.46,21,0,0],[.60,4,0,0],[.70,5,0,0],[.87,12,0,0]],t)[0];
 function solve(start,end,side,type){
  const lengths=type==='leg'?[62,60]:[39,33];
  const pole=type==='leg'?point(side*.12,0,1):point(side,0,.32);
@@ -25,7 +26,7 @@ function sagittal(start,length,angle,x){const span=Math.sqrt(length*length-(x-st
 function body(sport,t,resting){
  const p=t*TAU,seated=sport==='chess'||sport==='boardgames';
  const load=sport==='bowling'?sample([[0,14,0,0],[.24,23,3,0],[.46,45,-4,20],[.65,38,-4,14],[.85,14,0,0]],t):[0,0,0];
- const hip=point(load[1],seated?34:sport==='bowling'?load[0]:sport==='volleyball'?mix(13,4,Math.sin(Math.PI*clamp((t-.1)/.45))**2):12+(resting?0:Math.sin(p)**2));
+ const hip=point(load[1],seated?34:sport==='bowling'?load[0]:sport==='volleyball'?receive(t)[0]:sport==='basketball'?shotBody(t):12+(resting?0:Math.sin(p)**2));
  const neck=point(hip.x,hip.y-78+(sport==='bowling'?load[2]:0));
  const legs=[-1,1].map(side=>{
   const root=point(hip.x+side*13,hip.y,0);
@@ -37,7 +38,7 @@ function body(sport,t,resting){
   const x=seated?side*29:side*25;
   return solve(root,point(x,122,side*4),side,'leg');
  });
- const shrug=sport==='volleyball'?setLift(t)[0]*.5:0;
+ const shrug=sport==='basketball'?smooth((t-.48)/.12)*(1-smooth((t-.72)/.15))*22:0;
  const shoulders=[-1,1].map(s=>point(neck.x+s*25,neck.y+16-shrug,0));
  return {hip,neck,legs,shoulders,seated};
 }
@@ -50,14 +51,16 @@ function boardMove(t){
  return {x,y:y-lift,lift,held:t>.43&&t<.87};
 }
 function handTargets(sport,t,b){
- const {hip,neck}=b;
+ const {hip}=b;
  if(sport==='volleyball'){
-  const [lift,width]=setLift(t);
-  return [-1,1].map(s=>target(s*width,neck.y-33-lift*1.5,18));
+  const [,height,depth]=receive(t);
+  // Thumbs side by side; forearms form one platform below the waist.
+  return [-1,1].map(s=>target(s*3.2,hip.y-15+height,depth));
  }
  if(sport==='basketball'){
-  const [down]=sample([[0,0,0,0],[.18,14,0,0],[.45,10,0,0],[.70,2,0,0],[.82,0,0,0]],t);
-  return [target(-34,hip.y-12,24),target(47,hip.y-14+down,27)];
+  const [x,y,z]=sample([[0,47,-14,27],[.08,47,0,27],[.20,47,-3,27],[.32,47,-14,27],[.46,15,-69,28],[.60,12,-151,8],[.70,12,-154,8],[.82,25,-63,24],[.95,47,-14,27]],t);
+  const [lx,ly,lz]=sample([[0,-34,-12,24],[.32,-34,-12,24],[.46,-13,-69,28],[.60,-12,-151,8],[.67,-16,-128,12],[.88,-34,-12,24]],t);
+  return [target(lx,hip.y+ly,lz),target(x,hip.y+y,z)];
  }
  if(sport==='football'){
   const [spread]=sample([[0,0,0,0],[.24,7,0,0],[.43,15,0,0],[.65,9,0,0],[.88,0,0,0]],t);
@@ -86,11 +89,12 @@ export function gamePose(sport,phase,resting=false,withProps=true){
  const t=resting?0:((phase/TAU)%1+1)%1,b=body(sport,t,resting),targets=handTargets(sport,t,b);
  const arms=[-1,1].map((side,i)=>{
   if(sport==='bowling'&&side===1){
-   const [angle]=sample([[0,.03,0,0],[.24,-.72,0,0],[.45,.17,0,0],[.57,.68,0,0],[.72,.45,0,0],[.90,.03,0,0]],t);
+   const [angle]=sample([[0,.03,0,0],[.24,-.72,0,0],[.46,.24,0,0],[.60,1.05,0,0],[.72,.82,0,0],[.94,.03,0,0]],t);
    const shoulder=b.shoulders[i],elbow=sagittal(shoulder,39,angle,35+b.hip.x),wrist=sagittal(elbow,33,angle+.12,39+b.hip.x);
-   return {...limb(shoulder,elbow,wrist,side,'arm'),handOpen:true};
+   return {...limb(shoulder,elbow,wrist,side,'arm'),handOpen:t>=.46};
   }
-  return solve(b.shoulders[i],targets[i],side,'arm');
+  const arm=solve(b.shoulders[i],targets[i],side,'arm');
+  return {...arm,handOpen:sport!=='volleyball'};
  });
  const r={front:true,hip:b.hip,neck:b.neck,legs:b.legs,arms,phase,resting,
   torso:{chestYaw:0,hipYaw:0,chestScale:1},
@@ -100,20 +104,28 @@ export function gamePose(sport,phase,resting=false,withProps=true){
  if(!withProps)return r;
  const hand=arms[1].wrist;
  if(sport==='basketball'){
-  const release=.18,catchAt=.82,ground=116;
-  if(resting||t<release||t>catchAt)r.game.ball={x:hand.x,y:hand.y+15,radius:15,held:true,opacity:1,rotation:t*4};
-  else{
+  const release=.08,catchAt=.32,shotAt=.60,bounce=.20;
+  const grip=(w,t)=>{const gather=smooth((t-.32)/.14);return point(w.x-12*gather,w.y+mix(15,-14,gather));};
+  let ball=grip(hand,t),held=true;
+  if(!resting&&t>=release&&t<=catchAt){
    const a=gamePose(sport,release*TAU,false,false).arms[1].wrist,c=gamePose(sport,catchAt*TAU,false,false).arms[1].wrist;
-   const bounce=.47,u=t<bounce?(t-release)/(bounce-release):(t-bounce)/(catchAt-bounce);
-   const y=t<bounce?mix(a.y+15,ground,.5*u+.5*u*u):mix(ground,c.y+15,2*u-u*u);
-   r.game.ball={x:mix(a.x,c.x,(t-release)/(catchAt-release)),y,radius:15,held:false,opacity:1,rotation:t*4};
+   const u=t<bounce?(t-release)/(bounce-release):(t-bounce)/(catchAt-bounce);
+   ball=point(mix(a.x,c.x,(t-release)/(catchAt-release)),t<bounce?mix(a.y+15,116,.5*u+.5*u*u):mix(116,c.y+15,2*u-u*u));held=false;
+  }else if(!resting&&t>shotAt){
+   const w=gamePose(sport,shotAt*TAU,false,false).arms[1].wrist,start=grip(w,shotAt),u=clamp((t-shotAt)/.26);
+   // Release from the palm and carry the shot beyond both canvas tops.
+   ball=point(mix(start.x,0,u),start.y-340*(1.2*u-.2*u*u));held=false;
   }
+  r.game.ball={...ball,radius:15,held,opacity:resting?1:Math.min(smooth(t/.04),1-smooth((t-.88)/.07)),rotation:t*6};
  }else if(sport==='volleyball'){
-  const contact=point((arms[0].wrist.x+hand.x)/2,(arms[0].wrist.y+hand.y)/2-14);
-  let ball=contact,held=true;
-  if(!resting&&t<.28){const c=gamePose(sport,.28*TAU,false,false).arms;const end=point((c[0].wrist.x+c[1].wrist.x)/2,(c[0].wrist.y+c[1].wrist.y)/2-14);ball=lerp(point(0,-205),end,smooth((t-.06)/.22));held=false;}
-  else if(!resting&&t>.44){const c=gamePose(sport,.44*TAU,false,false).arms;const start=point((c[0].wrist.x+c[1].wrist.x)/2,(c[0].wrist.y+c[1].wrist.y)/2-14);ball=lerp(start,point(32,-211),smooth((t-.44)/.42));held=false;}
-  r.game.ball={...ball,radius:16,held,opacity:resting?1:fade(t,.06,.91),rotation:t*2};
+  const contact=point((arms[0].wrist.x+hand.x)/2,(arms[0].wrist.y+hand.y)/2-18),hitAt=.42;
+  const a=gamePose(sport,hitAt*TAU,false,false).arms,start=point((a[0].wrist.x+a[1].wrist.x)/2,(a[0].wrist.y+a[1].wrist.y)/2-18);
+  let ball=contact;
+  if(!resting){
+   if(t<hitAt){const u=clamp((t-.06)/(hitAt-.06));ball=lerp(point(0,-285),start,u*u);}
+   else{const u=clamp((t-hitAt)/.42);ball=point(start.x+12*u,start.y-300*(1.45*u-.45*u*u));}
+  }
+  r.game.ball={...ball,radius:16,held:false,opacity:resting?1:fade(t,.06,.91),rotation:t*2};
  }else if(sport==='football'){
   const contact=gamePose(sport,.43*TAU,false,false).legs[1].ankle;
   const start=point(contact.x,contact.y+22),u=smooth((t-.43)/.40);
@@ -121,11 +133,10 @@ export function gamePose(sport,phase,resting=false,withProps=true){
  }else if(sport==='bowling'){
   if(resting||t<.46)r.game.ball={x:hand.x,y:hand.y+14,radius:15,held:true,opacity:resting?1:smooth(t/.07),rotation:0};
   else{
-   const release=gamePose(sport,.46*TAU,false,false).arms[1].wrist,u=clamp((t-.46)/.36),land=smooth(u/.26),roll=smooth((u-.26)/.74);
-   r.game.ball={x:mix(mix(release.x,release.x+14,land),147,roll),y:mix(mix(release.y+14,122,land),74,roll),radius:mix(15,5,roll),held:false,opacity:1-smooth((t-.88)/.08),rotation:u*7,shadowY:mix(133,79,roll)};
+   const release=gamePose(sport,.46*TAU,false,false).arms[1].wrist,u=clamp((t-.46)/.40),travel=u*u;
+   // Grow toward the viewer and roll fully below the frame, like the soccer kick.
+   r.game.ball={x:mix(release.x,8,travel),y:mix(release.y+14,350,travel),radius:mix(15,82,travel),held:false,opacity:1-smooth((t-.90)/.07),rotation:u*9};
   }
-  r.game.pinFall=resting?0:smooth((t-.79)/.10);
-  r.game.pinOpacity=resting?1:Math.min(smooth(t/.07),1-smooth((t-.92)/.07));
  }else if(sport==='chess')r.game.piece={...chessMove(t),kind:'knight'};
  else{
   r.game.piece={...boardMove(t),kind:'pawn'};
@@ -142,7 +153,6 @@ function path(c,points,fill,stroke=INK,width=2){c.beginPath();points.forEach((p,
 function line(c,points,color=INK,width=1.5){c.beginPath();points.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.stroke();}
 function oval(c,x,y,rx,ry,fill,stroke=INK,width=1.5){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=fill;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=width;c.stroke();}}
 function boardPoint(u,v){return point(mix(mix(-66,-83,v),mix(88,105,v),u),24+38*v);}
-function pin(c,x,y,angle=0){c.save();c.translate(x,y);c.rotate(angle);c.beginPath();c.moveTo(-3,0);c.quadraticCurveTo(-6,-7,-2,-12);c.lineTo(-2,-17);c.bezierCurveTo(-6,-23,6,-23,2,-17);c.lineTo(2,-12);c.quadraticCurveTo(6,-7,3,0);c.closePath();c.fillStyle='#f5ead7';c.fill();c.strokeStyle=INK;c.lineWidth=1;c.stroke();line(c,[point(-2,-13),point(2,-13)],'#d8796b',2);c.restore();}
 function chessPiece(c,x,y,kind,light=true,scale=1){
  c.save();c.translate(x,y);c.scale(scale,scale);const fill=light?'#f1dfbf':'#596c63';
  oval(c,0,0,7,2.8,fill);
@@ -159,16 +169,6 @@ export function drawGameBack(c,r){
   path(c,[point(-46,49),point(46,49),point(46,59),point(-46,59)],'#668060');
   for(const x of [-38,38])line(c,[point(x,57),point(x,130)],'#7d8d6c',5);
   for(const x of [-76,96])line(c,[point(x,57),point(x,128)],'#896d52',6);
- }else if(g.sport==='bowling'){
-  path(c,[point(4,150),point(96,150),point(177,54),point(137,54)],'#9c8560','#c5b88d',1.5);
-  for(const u of [.25,.5,.75])line(c,[lerp(point(4,150),point(96,150),u),lerp(point(137,54),point(177,54),u)],'#77695088',.8);
-  c.save();c.globalAlpha=g.pinOpacity;
-  for(const [i,[x,y]] of [[137,69],[147,69],[157,69],[141,76],[151,76],[146,83]].entries())pin(c,x,y,g.pinFall*(i%2?1:-1)*1.15);
-  c.restore();
- }else if(g.sport==='volleyball'){
-  line(c,[point(95,140),point(95,-35),point(185,-35),point(185,140)],'#8da68a',2);
-  for(let x=95;x<=185;x+=15)line(c,[point(x,-35),point(x,10)],'#86a38555',.8);
-  for(let y=-35;y<=10;y+=15)line(c,[point(95,y),point(185,y)],'#86a38555',.8);
  }
  c.restore();
 }
@@ -213,8 +213,8 @@ export function drawGameFront(c,r,colors){
  const g=r.game;if(!g)return;c.save();
  if(g.ball&&g.ball.opacity>0){
   const b=g.ball;
-  if(g.sport==='basketball'||g.sport==='football'||g.sport==='bowling'){
-   c.save();c.globalAlpha=b.opacity;oval(c,b.x,g.sport==='football'?b.y+b.radius*.95:(b.shadowY??133),Math.max(5,b.radius*.8),2,'#10291f55',null);c.restore();
+  if((g.sport==='basketball'&&g.t<=.32)||g.sport==='football'||g.sport==='bowling'){
+   c.save();c.globalAlpha=b.opacity;oval(c,b.x,(g.sport==='football'||g.sport==='bowling')?b.y+b.radius*.95:133,Math.max(5,b.radius*.8),2,'#10291f55',null);c.restore();
   }
   ball(c,b,g.sport);
   if(b.held){

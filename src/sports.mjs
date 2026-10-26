@@ -13,10 +13,10 @@ export const SPORTS = {
   tabletennis: {name: 'Table tennis', icon: '◕', verb: 'Keep your momentum', detail: 'Quick rallies. One focused thought at a time.', period: 1.6, color: '#f0a69d'},
   badminton: {name: 'Badminton', icon: '⌁', verb: 'Keep your focus flying', detail: 'Light on your feet. Clear in your mind.', period: 2.8, color: '#f1b9d4'},
   walking: {name: 'Walking', icon: '↝', verb: 'Move at your own pace', detail: 'Steady progress is still progress.', period: 1.7, color: '#91ddcd'},
-  basketball: {name:'Basketball',icon:'◍',verb:'Find your bounce',detail:'Keep a steady rhythm. Take the next shot.',period:1.65,color:'#edba7c',previewScale:1.8},
-  volleyball: {name:'Volleyball',icon:'◓',verb:'Set yourself up',detail:'A little lift. A little progress.',period:3.2,color:'#e8d989',previewScale:1.6},
+  basketball: {name:'Basketball',icon:'◍',verb:'Find your bounce',detail:'Keep a steady rhythm. Take the next shot.',period:3.8,color:'#edba7c',previewScale:1.8},
+  volleyball: {name:'Volleyball',icon:'◓',verb:'Be ready for the next ball',detail:'Stay grounded. Keep your momentum.',period:3.2,color:'#e8d989',previewScale:1.6},
   football: {name:'Football',icon:'⬡',verb:'Keep moving forward',detail:'One touch at a time. Find your goal.',period:2.6,color:'#a8d6a0',previewScale:1.6},
-  bowling: {name:'Bowling',icon:'∴',verb:'Get into your lane',detail:'A calm approach. A smooth release.',period:3.6,color:'#c3b5e8',previewScale:1.4},
+  bowling: {name:'Bowling',icon:'∴',verb:'Find your follow-through',detail:'A calm approach. A smooth release.',period:3.6,color:'#c3b5e8',previewScale:1.65},
   chess: {name:'Chess',icon:'♞',verb:'Make your next move',detail:'Give one good thought your full attention.',period:6.4,color:'#d4c7a3',previewScale:1.65},
   boardgames: {name:'Board games',icon:'⚄',verb:'Enjoy your turn',detail:'Roll with it. Small moves add up.',period:6.2,color:'#e4b7cd',previewScale:1.65}
 };

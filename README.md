@@ -29,7 +29,7 @@ npm test
 - Tennis and badminton shoulder sockets and sleeves share the projected collarbone anchors. Arm segments and rackets reveal progressively across the chest, avoiding whole-limb front/back layer switches. The tennis free arm follows a continuous shoulder-led path.
 - Badminton uses the supplied compact-stroke references: chest-height support hand, a stable elbow-relative racket frame, and a slower 2.8-second preparation/contact/follow-through/recovery cycle.
 - Balls and shuttlecocks meet the paddle or strings at contact; the shuttle feathers follow its flight direction.
-- Six additional activities: a palm-synchronized basketball dribble, a two-handed volleyball set, a frontal soccer kick, a bowling delivery with a lane and falling pins, a seated chess knight move, and a seated dice-and-token board-game turn. Ball contact/release and piece pickups share the avatar's pose clock. The table surface is layered between the lower body and arms so hands and clothing remain connected.
+- Six additional activities: one basketball dribble followed by a frontal shot out of the top of the frame, a joined-hands volleyball forearm receive, a frontal soccer kick, a bowling swing and release toward the viewer, a seated chess knight move, and a seated dice-and-token board-game turn. Ball contact/release and piece pickups share the avatar's pose clock. The table surface is layered between the lower body and arms so hands and clothing remain connected.
 - Focus, short break and long break timers; pause, resume and reset.
 - A long break after every fourth completed focus round. New rounds start manually.
 - Deadline-based countdown catches up after background-tab throttling or device sleep while the page remains open.

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {GAME_IDS,gamePose} from '../src/games.mjs';
+import {GAME_IDS,gamePose,drawGameBack} from '../src/games.mjs';
 import {SPORTS,pose} from '../src/sports.mjs';
 const TAU=2*Math.PI;
 const at=(id,t,rest=false)=>gamePose(id,t*TAU,rest);
@@ -8,25 +8,34 @@ const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,(a.z??0)-(b.z??0));
 test('all six activities are selectable and have their own scene and pace',()=>{
  assert.equal(Object.keys(SPORTS).length,13);
  for(const id of GAME_IDS){assert.ok(SPORTS[id]);assert.equal(pose(id,0).front.game.sport,id);}
- assert.ok(SPORTS.chess.period>SPORTS.basketball.period*3);
+ assert.ok(SPORTS.chess.period>SPORTS.basketball.period*1.5);
  assert.ok(at('chess',0).game.seated&&at('boardgames',0).game.seated);
  assert.equal(at('bowling',0).game.seated,false);
 });
-test('basketball releases from the palm, bounces at the floor, and returns to the same hand',()=>{
- const release=at('basketball',.18),bounce=at('basketball',.47),catchPose=at('basketball',.82);
+test('basketball makes exactly one dribble, gathers, then shoots out of the top',()=>{
+ const release=at('basketball',.08),bounce=at('basketball',.20),caught=at('basketball',.32),shot=at('basketball',.60);
  assert.ok(Math.abs(release.game.ball.x-release.arms[1].wrist.x)<1e-8);
  assert.ok(Math.abs(release.game.ball.y-release.arms[1].wrist.y-15)<1e-8);
- assert.equal(bounce.game.ball.y,116);
- assert.ok(bounce.game.ball.y>release.game.ball.y+60);
- assert.ok(Math.abs(catchPose.game.ball.y-catchPose.arms[1].wrist.y-15)<1e-8);
- for(let t=0;t<1;t+=.01)assert.ok(at('basketball',t).game.ball.y+15<=132);
+ assert.ok(Math.abs(bounce.game.ball.y-116)<1e-8);
+ assert.ok(Math.abs(caught.game.ball.y-caught.arms[1].wrist.y-15)<1e-8);
+ assert.ok(at('basketball',.45).game.ball.held);
+ assert.ok(shot.arms.every(a=>a.wrist.y<shot.neck.y-20));
+ assert.ok(Math.abs(shot.game.ball.y-shot.arms[1].wrist.y+14)<1e-8);
+ assert.ok(!at('basketball',.61).game.ball.held);
+ assert.ok(at('basketball',.85).game.ball.y+15<-300,'shot must leave the top of both previews');
+ let floorTouches=0;
+ for(let t=.001;t<.999;t+=.001)if(at('basketball',t).game.ball.y>100&&at('basketball',t-.001).game.ball.y<at('basketball',t).game.ball.y&&at('basketball',t+.001).game.ball.y<at('basketball',t).game.ball.y)floorTouches++;
+ assert.equal(floorTouches,1,'one floor bounce per shot');
 });
-test('volleyball uses two raised hands and releases upward from their shared contact',()=>{
- const r=at('volleyball',.4),b=r.game.ball;
- for(const a of r.arms)assert.ok(a.wrist.y<r.neck.y-40);
+test('volleyball receives on a low joined-hands platform and rebounds upward',()=>{
+ const r=at('volleyball',.42),b=r.game.ball;
+ for(const a of r.arms)assert.ok(a.wrist.y>r.neck.y+50&&a.wrist.z>25);
+ assert.ok(distance(r.arms[0].wrist,r.arms[1].wrist)<7,'hands stay joined');
  assert.ok(Math.abs(b.x-(r.arms[0].wrist.x+r.arms[1].wrist.x)/2)<1e-8);
- assert.ok(Math.abs(b.y-(r.arms[0].wrist.y+r.arms[1].wrist.y)/2+14)<1e-8);
- assert.ok(at('volleyball',.7).game.ball.y<at('volleyball',.44).game.ball.y-25);
+ assert.ok(Math.abs(b.y-(r.arms[0].wrist.y+r.arms[1].wrist.y)/2+18)<1e-8);
+ assert.ok(at('volleyball',.40).game.ball.y<b.y&&at('volleyball',.44).game.ball.y<b.y);
+ assert.ok(at('volleyball',.7).game.ball.y<b.y-150);
+ for(let t=0;t<1;t+=.01)assert.ok(distance(at('volleyball',t).arms[0].wrist,at('volleyball',t).arms[1].wrist)<7);
 });
 test('football keeps a support foot planted while the kicking foot sends the ball forward',()=>{
  const load=at('football',.25),hit=at('football',.43),after=at('football',.7);
@@ -37,15 +46,17 @@ test('football keeps a support foot planted while the kicking foot sends the bal
  assert.ok(after.game.ball.y>hit.game.ball.y+20&&after.game.ball.radius>hit.game.ball.radius);
  for(let t=0;t<1;t+=.02)assert.ok(Math.abs(at('football',t).legs[0].ankle.y-122)<1e-8);
 });
-test('bowling releases low, rolls away toward the pins, then resets without a visible pop',()=>{
- const ready=at('bowling',0),release=at('bowling',.46),pins=at('bowling',.84);
+test('bowling swings back, releases low, and grows toward the viewer without lane or pins',()=>{
+ const ready=at('bowling',0),back=at('bowling',.24),release=at('bowling',.46),front=at('bowling',.78);
+ assert.ok(back.arms[1].world.wrist.z<ready.arms[1].world.wrist.z-30);
+ assert.ok(at('bowling',.6).arms[1].world.wrist.z>release.arms[1].world.wrist.z+30);
  assert.ok(release.arms[1].wrist.y>ready.arms[1].wrist.y+40);
  assert.ok(Math.abs(release.game.ball.y-release.arms[1].wrist.y-14)<1e-8);
- assert.ok(pins.game.ball.x>release.game.ball.x+90&&pins.game.ball.radius<7);
- assert.ok(pins.game.pinFall>0);
+ assert.ok(front.game.ball.y>release.game.ball.y+100&&front.game.ball.radius>45);
+ assert.ok(at('bowling',.86).game.ball.y-at('bowling',.86).game.ball.radius>230);
+ assert.equal('pinFall' in front.game,false);
  assert.equal(at('bowling',0).game.ball.opacity,0);
  assert.equal(at('bowling',.99999).game.ball.opacity,0);
- assert.equal(at('bowling',.99999).game.pinOpacity,0);
 });
 test('tabletop pieces follow the hand while lifted and rest on the board when placed',()=>{
  for(const id of ['chess','boardgames'])for(let t=.001;t<1;t+=.003){
@@ -82,5 +93,13 @@ test('stopped sessions and breaks hold a stable activity pose with stable props'
    assert.deepEqual(b.game,a.game);
    for(let i=0;i<2;i++)assert.deepEqual(b.arms[i].world,a.arms[i].world);
   }
+ }
+});
+
+test('volleyball and bowling render no background net, lane or pins',()=>{
+ for(const id of ['volleyball','bowling'])for(const t of [0,.24,.42,.60,.85]){
+  let draws=0;
+  const ctx=new Proxy({save(){},restore(){}},{get:(c,k)=>c[k]??(()=>draws++)});
+  drawGameBack(ctx,at(id,t));assert.equal(draws,0);
  }
 });
