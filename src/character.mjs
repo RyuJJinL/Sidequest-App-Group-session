@@ -45,5 +45,6 @@ function drawFrontBody(ctx,motion,appearance,colors,layers){
  drawClothedShorts(ctx,clothes);
  layers.middle?.();
  drawClothedTorso(ctx,clothes);
+ layers.torso?.();
  for(const arm of motion.arms)drawClothedArm(ctx,clothes,arm.side,true);
 }

@@ -6,6 +6,7 @@ import {frontRunPose} from './running.mjs';
 import {drawIllustratedFigure} from './character.mjs';
 import {GAME_IDS,gamePose,drawGameBack,drawGameTable,drawGameFront} from './games.mjs';
 import {FITNESS_IDS,fitnessPose,drawFitnessBack,drawFitnessFront,drawSwimWater} from './fitness.mjs';
+import {OUTDOOR_IDS,outdoorPose,applyOutdoorFrame,drawOutdoorEnvironment,drawOutdoorBack,drawOutdoorMiddle,drawOutdoorTorso,drawOutdoorFront} from './outdoors.mjs';
 export const SPORTS = {
   running: {name: 'Running', icon: '↗', verb: 'Find your stride', detail: 'One step. One task. A little further.', period: .85, color: '#c4f17b'},
   pickleball: {name: 'Pickleball', icon: '◒', verb: 'Get in the zone', detail: 'Small wins make a great rally.', period: 1.9, color: '#f2ca81'},
@@ -25,17 +26,27 @@ export const SPORTS = {
   yoga: {name:'Yoga',icon:'♧',verb:'Breathe into the moment',detail:'Root down. Make a little space.',period:6.8,color:'#b7d6ba',previewScale:1.7},
   cycling: {name:'Cycling',icon:'◎',verb:'Keep your cadence',detail:'A steady pedal. A little further.',period:1.8,color:'#9cd8d9',previewScale:1.7},
   dance: {name:'Dance',icon:'♫',verb:'Find your own rhythm',detail:'Let small steps carry you forward.',period:2.1,color:'#f0b3c3',previewScale:1.7},
-  swimming: {name:'Swimming',icon:'≈',verb:'Settle into your flow',detail:'Reach, breathe, and keep moving.',period:2.8,color:'#a4d8ef',previewScale:1},
-  crossfit: {name:'CrossFit',icon:'⌃',verb:'Meet the next rep',detail:'Strong effort. A steady mind.',period:2.8,color:'#e9b291',previewScale:1.7}
+  swimming: {name:'Swimming',icon:'≈',verb:'Settle into your flow',detail:'Reach, breathe, and keep moving.',period:2.8,color:'#a4d8ef',previewScale:1,previewX:240,ground:false},
+  crossfit: {name:'CrossFit',icon:'⌃',verb:'Meet the next rep',detail:'Strong effort. A steady mind.',period:2.8,color:'#e9b291',previewScale:1.7},
+  hiking: {name:'Hiking',icon:'⌁',verb:'Take the scenic route',detail:'A steady climb. A little perspective.',period:2.5,color:'#c8d39d',previewScale:1.55,ground:false},
+  camping: {name:'Camping',icon:'△',verb:'Make a little space',detail:'Settle in. Build something worthwhile.',period:3.8,color:'#ddc08c',previewScale:1.1,ground:false},
+  trailrunning: {name:'Trail running',icon:'⋀',verb:'Find your next foothold',detail:'Quick feet. A clear mind.',period:1.05,color:'#c2d985',previewScale:1.5,previewX:240,ground:false},
+  climbing: {name:'Climbing',icon:'⋮',verb:'Reach a little higher',detail:'One hold. One thoughtful move.',period:4.4,color:'#cbb6a2',previewScale:1.4,previewX:240,ground:false},
+  surfing: {name:'Surfing',icon:'∿',verb:'Find your balance in the flow',detail:'Stay loose. Ride your rhythm.',period:3.1,color:'#a7d9ca',previewScale:1.45,previewX:240,ground:false},
+  freediving: {name:'Freediving',icon:'⌄',verb:'Find a quieter focus',detail:'Slow down. Move with intention.',period:4.2,color:'#95c9ce',previewScale:1.4,previewX:240,ground:false},
+  scubadiving: {name:'Scuba diving',icon:'◌',verb:'Explore one thought at a time',detail:'A calm rhythm. A new perspective.',period:4.8,color:'#a5bfdc',previewScale:1.05,previewX:240,ground:false},
+  kayaking: {name:'Kayaking',icon:'⟷',verb:'Keep a steady stroke',detail:'Find your line. Paddle forward.',period:2.8,color:'#e5be8c',previewScale:1.25,previewX:240,ground:false},
+  fishing: {name:'Fishing',icon:'⌕',verb:'Give it a little patience',detail:'Stay present. Let good ideas surface.',period:5.2,color:'#b4c7a0',previewScale:1.05,ground:false}
 };
 export function pose(sport, phase, resting = false) {
   if (!SPORTS[sport]) throw new Error('Unknown sport');
-  const front=FITNESS_IDS.includes(sport)?fitnessPose(sport,phase,resting):GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
+  const front=OUTDOOR_IDS.includes(sport)?outdoorPose(sport,phase,resting):FITNESS_IDS.includes(sport)?fitnessPose(sport,phase,resting):GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
   return {front,bob:0};
 }
 export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage') {
   const {front}=pose(sport,phase,resting),colors=appearanceColors(outfit);
   ctx.save();
+  if(front.outdoor){drawOutdoorEnvironment(ctx,front);ctx.save();applyOutdoorFrame(ctx,front);drawOutdoorBack(ctx,front);}
   if(front.fitness){
    drawSwimWater(ctx,front);
    if(sport==='swimming'){ctx.save();ctx.translate(0,18);ctx.rotate(Math.PI/2);ctx.scale(.88,.88);}
@@ -43,7 +54,7 @@ export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS
   }
   if(front.game)drawGameBack(ctx,front);
   if(front.equipment&&(front.shoulderRig||front.equipment.depth<0))drawEquipment(ctx,front.equipment,color,colors);
-  drawIllustratedFigure(ctx,front,phase,outfit,front.game?.seated?{middle:()=>drawGameTable(ctx,front)}:undefined);
+  drawIllustratedFigure(ctx,front,phase,outfit,front.outdoor?{middle:()=>drawOutdoorMiddle(ctx,front),torso:()=>drawOutdoorTorso(ctx,front)}:front.game?.seated?{middle:()=>drawGameTable(ctx,front)}:undefined);
   if(front.equipment){
    const e=front.equipment;
    if(front.shoulderRig)drawFrontPart(ctx,e.worldGrip,e.worldHead,e.grip,e.head,()=>drawEquipment(ctx,e,color,colors));
@@ -51,6 +62,7 @@ export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS
   }
   if(front.projectile)drawProjectile(ctx,front.projectile,sport,color);
   if(front.game)drawGameFront(ctx,front,colors);
+  if(front.outdoor){drawOutdoorFront(ctx,front,colors);ctx.restore();drawOutdoorEnvironment(ctx,front,true);}
   if(front.fitness){
    drawFitnessFront(ctx,front,colors);
    if(sport==='swimming'){ctx.restore();drawSwimWater(ctx,front,true);}

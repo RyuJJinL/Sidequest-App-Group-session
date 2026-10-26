@@ -39,7 +39,7 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 function paint() {
   ctx.clearRect(0,0,960,620);
   ctx.save();ctx.translate(430,330);ctx.scale(1.35,1.35);
-  if(sport!=='swimming'){
+  if(SPORTS[sport].ground!==false){
    ctx.fillStyle='#102a2266';ctx.beginPath();ctx.ellipse(0,136,83,9,0,0,Math.PI*2);ctx.fill();
    ctx.strokeStyle='#8dbd8155';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-260,145);ctx.lineTo(320,145);ctx.stroke();
   }

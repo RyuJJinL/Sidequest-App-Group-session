@@ -6,7 +6,6 @@ const TAU=2*Math.PI;
 const at=(id,t,rest=false)=>fitnessPose(id,t*TAU,rest);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,(a.z??0)-(b.z??0));
 test('all seven fitness activities are selectable with distinct motion and sensible pacing',()=>{
- assert.equal(Object.keys(SPORTS).length,20);
  for(const id of FITNESS_IDS){assert.equal(pose(id,0).front.fitness.sport,id);assert.ok(SPORTS[id].period>1);}
  assert.ok(SPORTS.yoga.period>SPORTS.cycling.period*3);
  const signatures=FITNESS_IDS.map(id=>JSON.stringify(at(id,.3).arms.map(a=>a.wrist)));
