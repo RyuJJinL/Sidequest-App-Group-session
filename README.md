@@ -1,6 +1,6 @@
 # Sidequest · Sports Focus
 
-A browser Pomodoro app with animated running, pickleball, tennis, padel, table tennis, badminton, walking, basketball, volleyball, football, bowling, chess and board-game companions. Built using the articulated figure and cyclic motion interpolation from [StykAnimate](https://github.com/filippocalippo/StykAnimate-App).
+A browser Pomodoro app with animated running, pickleball, tennis, padel, table tennis, badminton, walking, basketball, volleyball, football, bowling, chess, board-game, gym, Pilates, yoga, cycling, dance, swimming and CrossFit companions. Built using the articulated figure and cyclic motion interpolation from [StykAnimate](https://github.com/filippocalippo/StykAnimate-App).
 
 ## Run
 
@@ -30,6 +30,7 @@ npm test
 - Badminton uses the supplied compact-stroke references: chest-height support hand, a stable elbow-relative racket frame, and a slower 2.8-second preparation/contact/follow-through/recovery cycle.
 - Balls and shuttlecocks meet the paddle or strings at contact; the shuttle feathers follow its flight direction.
 - Six additional activities: one basketball dribble followed by a frontal shot out of the top of the frame, a joined-hands volleyball forearm receive, a frontal soccer kick, a bowling swing and release toward the viewer, a seated chess knight move, and a seated dice-and-token board-game turn. Ball contact/release and piece pickups share the avatar's pose clock. The table surface is layered between the lower body and arms so hands and clothing remain connected.
+- Seven fitness categories: alternating dumbbell curls (Gym), controlled standing side-leg raises on a mat (Pilates), a tree-pose breathing loop (Yoga), front-view stationary cycling with foot-linked pedals, a side-step dance groove, horizontal backstroke with alternating arm recovery and flutter kicks, and a squat-to-kettlebell swing (CrossFit). Weights, handles and pedals follow the same solved joints as the avatar. All seven work with the wardrobe, saved selection, paused sessions and reduced motion.
 - Focus, short break and long break timers; pause, resume and reset.
 - A long break after every fourth completed focus round. New rounds start manually.
 - Deadline-based countdown catches up after background-tab throttling or device sleep while the page remains open.

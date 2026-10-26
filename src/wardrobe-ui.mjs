@@ -119,8 +119,8 @@ export function mountWardrobe({getAppearance,onChange,getSport,onSportChange}){
   if(!dialog.open)return;
   const sport=getSport(),resting=reducedMotion||!$('#wardrobe-motion').checked;
   const scale=SPORTS[sport].previewScale??1.9;
-  ctx.clearRect(0,0,480,660);ctx.save();ctx.translate(205,350);ctx.scale(scale,scale);
-  ctx.fillStyle='#102a2255';ctx.beginPath();ctx.ellipse(0,139,57,6,0,0,Math.PI*2);ctx.fill();
+  ctx.clearRect(0,0,480,660);ctx.save();ctx.translate(sport==='swimming'?240:205,350);ctx.scale(scale,scale);
+  if(sport!=='swimming'){ctx.fillStyle='#102a2255';ctx.beginPath();ctx.ellipse(0,139,57,6,0,0,Math.PI*2);ctx.fill();}
   drawCharacter(ctx,sport,phase,resting,SPORTS[sport].color,getAppearance());ctx.restore();
  }
  buildOptions();buildItems();render();

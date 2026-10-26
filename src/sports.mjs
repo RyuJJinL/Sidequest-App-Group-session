@@ -5,6 +5,7 @@ import {frontWalkPose,courtPose} from './actions.mjs';
 import {frontRunPose} from './running.mjs';
 import {drawIllustratedFigure} from './character.mjs';
 import {GAME_IDS,gamePose,drawGameBack,drawGameTable,drawGameFront} from './games.mjs';
+import {FITNESS_IDS,fitnessPose,drawFitnessBack,drawFitnessFront,drawSwimWater} from './fitness.mjs';
 export const SPORTS = {
   running: {name: 'Running', icon: '↗', verb: 'Find your stride', detail: 'One step. One task. A little further.', period: .85, color: '#c4f17b'},
   pickleball: {name: 'Pickleball', icon: '◒', verb: 'Get in the zone', detail: 'Small wins make a great rally.', period: 1.9, color: '#f2ca81'},
@@ -18,16 +19,28 @@ export const SPORTS = {
   football: {name:'Football',icon:'⬡',verb:'Keep moving forward',detail:'One touch at a time. Find your goal.',period:2.6,color:'#a8d6a0',previewScale:1.6},
   bowling: {name:'Bowling',icon:'∴',verb:'Find your follow-through',detail:'A calm approach. A smooth release.',period:3.6,color:'#c3b5e8',previewScale:1.65},
   chess: {name:'Chess',icon:'♞',verb:'Make your next move',detail:'Give one good thought your full attention.',period:6.4,color:'#d4c7a3',previewScale:1.65},
-  boardgames: {name:'Board games',icon:'⚄',verb:'Enjoy your turn',detail:'Roll with it. Small moves add up.',period:6.2,color:'#e4b7cd',previewScale:1.65}
+  boardgames: {name:'Board games',icon:'⚄',verb:'Enjoy your turn',detail:'Roll with it. Small moves add up.',period:6.2,color:'#e4b7cd',previewScale:1.65},
+  gym: {name:'Gym',icon:'↔',verb:'Build your focus',detail:'One controlled rep. One clear thought.',period:3.4,color:'#c2c4ee',previewScale:1.7},
+  pilates: {name:'Pilates',icon:'⌇',verb:'Find your balance',detail:'Slow control. Steady progress.',period:4.6,color:'#dbb9d4',previewScale:1.6},
+  yoga: {name:'Yoga',icon:'♧',verb:'Breathe into the moment',detail:'Root down. Make a little space.',period:6.8,color:'#b7d6ba',previewScale:1.7},
+  cycling: {name:'Cycling',icon:'◎',verb:'Keep your cadence',detail:'A steady pedal. A little further.',period:1.8,color:'#9cd8d9',previewScale:1.7},
+  dance: {name:'Dance',icon:'♫',verb:'Find your own rhythm',detail:'Let small steps carry you forward.',period:2.1,color:'#f0b3c3',previewScale:1.7},
+  swimming: {name:'Swimming',icon:'≈',verb:'Settle into your flow',detail:'Reach, breathe, and keep moving.',period:2.8,color:'#a4d8ef',previewScale:1},
+  crossfit: {name:'CrossFit',icon:'⌃',verb:'Meet the next rep',detail:'Strong effort. A steady mind.',period:2.8,color:'#e9b291',previewScale:1.7}
 };
 export function pose(sport, phase, resting = false) {
   if (!SPORTS[sport]) throw new Error('Unknown sport');
-  const front=GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
+  const front=FITNESS_IDS.includes(sport)?fitnessPose(sport,phase,resting):GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
   return {front,bob:0};
 }
 export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage') {
   const {front}=pose(sport,phase,resting),colors=appearanceColors(outfit);
   ctx.save();
+  if(front.fitness){
+   drawSwimWater(ctx,front);
+   if(sport==='swimming'){ctx.save();ctx.translate(0,18);ctx.rotate(Math.PI/2);ctx.scale(.88,.88);}
+   drawFitnessBack(ctx,front);
+  }
   if(front.game)drawGameBack(ctx,front);
   if(front.equipment&&(front.shoulderRig||front.equipment.depth<0))drawEquipment(ctx,front.equipment,color,colors);
   drawIllustratedFigure(ctx,front,phase,outfit,front.game?.seated?{middle:()=>drawGameTable(ctx,front)}:undefined);
@@ -38,6 +51,10 @@ export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS
   }
   if(front.projectile)drawProjectile(ctx,front.projectile,sport,color);
   if(front.game)drawGameFront(ctx,front,colors);
+  if(front.fitness){
+   drawFitnessFront(ctx,front,colors);
+   if(sport==='swimming'){ctx.restore();drawSwimWater(ctx,front,true);}
+  }
   ctx.restore();
 }
 function drawEquipment(ctx,e,color,colors){

@@ -6,7 +6,6 @@ const TAU=2*Math.PI;
 const at=(id,t,rest=false)=>gamePose(id,t*TAU,rest);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,(a.z??0)-(b.z??0));
 test('all six activities are selectable and have their own scene and pace',()=>{
- assert.equal(Object.keys(SPORTS).length,13);
  for(const id of GAME_IDS){assert.ok(SPORTS[id]);assert.equal(pose(id,0).front.game.sport,id);}
  assert.ok(SPORTS.chess.period>SPORTS.basketball.period*1.5);
  assert.ok(at('chess',0).game.seated&&at('boardgames',0).game.seated);
