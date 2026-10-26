@@ -3,6 +3,7 @@ import {FocusTimer, formatTime, DEFAULTS} from './timer.mjs';
 import {SPORTS, drawCharacter} from './sports.mjs';
 import {restoreAppearance} from './wardrobe.mjs';
 import {mountWardrobe} from './wardrobe-ui.mjs';
+import {mountActivityPicker} from './activity-picker.mjs';
 const $ = s => document.querySelector(s);
 let saved = {};
 try {saved = JSON.parse(localStorage.getItem('sidequest-v1')) || {};} catch {}
@@ -46,6 +47,7 @@ function paint() {
   drawCharacter(ctx,sport,phase,timer.mode!=='focus'||!timer.running,SPORTS[sport].color,appearance);
   ctx.restore();
 }
+const activityPicker=mountActivityPicker({getSelected:()=>sport,onSelect:key=>selectSport(key)});
 const wardrobe=mountWardrobe({
  getAppearance:()=>appearance,
  onChange:next=>{appearance=next;paint();return save();},
@@ -67,13 +69,8 @@ function selectSport(key) {
   $('#sport-badge').textContent = `${s.icon} ${s.name.toUpperCase()}`;
   $('#sport-heading').textContent=s.verb;$('#sport-detail').textContent=s.detail;
   canvas.setAttribute('aria-label',`Animated ${s.name.toLowerCase()} companion`);
-  for(const b of document.querySelectorAll('[data-sport]')) {const active=b.dataset.sport===key;b.setAttribute('aria-pressed',active);b.querySelector('.selected').textContent=active?'✓':'';}
+  activityPicker.syncSelection();
   paint();save();
-}
-for (const [key,s] of Object.entries(SPORTS)) {
-  const b=document.createElement('button');b.className='sport-card';b.dataset.sport=key;b.style.setProperty('--sport-color',s.color);
-  b.innerHTML=`<span class="sport-icon" aria-hidden="true">${s.icon}</span><span>${s.name}</span><span class="selected" aria-hidden="true"></span>`;
-  b.addEventListener('click',()=>selectSport(key));$('#sports').append(b);
 }
 function unlockAudio() {
   if(!sound)return;

@@ -1,6 +1,6 @@
 # Sidequest · Sports Focus
 
-A browser Pomodoro app with animated running, pickleball, tennis, padel, table tennis, badminton, walking, basketball, volleyball, football, bowling, chess, board-game, gym, Pilates, yoga, cycling, dance, swimming, CrossFit, hiking, camping, trail running, climbing, surfing, freediving, scuba diving, kayaking, fishing, painting, drawing, pottery, photography, crafts, music, writing, filmmaking, cafe, food trips, cooking, baking, picnics, karaoke, trivia nights and community meetup companions. Built using the articulated figure and cyclic motion interpolation from [StykAnimate](https://github.com/filippocalippo/StykAnimate-App).
+A browser Pomodoro app with 73 animated activities across ten categories: sports, outdoors, creativity, food, social activities, entertainment, learning, wellness, causes and travel. Built using the articulated figure and cyclic motion interpolation from [StykAnimate](https://github.com/filippocalippo/StykAnimate-App).
 
 ## Run
 
@@ -34,6 +34,12 @@ npm test
 - Nine outdoor categories with independent choreography: trekking-pole hiking over rocks; kneeling tent-peg tapping; fast trail bounds and obstacle clearance; alternating hand/foot climbing holds with a harness; surfboard crouch and balance; head-first streamlined freediving with long fins; horizontal scuba frog finning with tanks, mask, regulator and exhalation bubbles; seated double-blade kayaking; and rod lifting with reeling. Outdoor props are part of the activity, layered around the selected wardrobe. Freediving has no tank or exhalation bubbles.
 - Eight arts and creativity activities: easel painting with a held palette and brush, seated pencil drawing, shaping a vessel on a spinning pottery wheel, raising a camera for a photo, cutting felt with opening scissors, acoustic guitar strumming and fretting, writing lines with lifted pen returns, and panning a video camera on a tripod. Shared desk and instrument layers keep the tools, hands and chosen clothes connected.
 - Eight food and social activities: seated coffee sipping at a cafe, tasting a plate of food with a fork, stirring a pot on a stove, rolling dough with both hands, eating a sandwich on a picnic blanket, singing into a wired karaoke microphone, pressing a trivia buzzer and raising an answer card, and a community greeting wave with two nearby participants. Props share the solved hand positions; pause and reduced motion hold the complete scene still.
+- Entertainment & Fandom adds popcorn-and-movie watching, sports cheering with a foam finger, concert glowsticks, an original anime hero pose, gamepad play, and theater applause with a bow.
+- Learning & Skills adds language flashcards, laptop typing, a woodworking workshop, book page turns, knitting practice for Skill Classes, a presentation at a lectern, coin-and-calculator budgeting for Financial Literacy, and turning a screwdriver for DIY.
+- Wellness & Mindfulness adds meditation with calm eyes and a breathing halo, hands-on-chest breathwork, a seated resistance-band recovery loop, and a gentle side stretch.
+- Community & Causes adds packing donation cans, picking up litter with a grabber, offering a heart gift box, petting a dog while holding a food bowl, and rolling paint on a community sign.
+- Travel & Exploration adds map-and-binocular day trips, a phone-and-tote city stroll, pointing out heritage architecture, steering from inside a car, and waving from a bobbing island boat with a life jacket.
+- Category filtering, multiword activity search, result counts, clear empty states and grouped wardrobe options keep the larger collection usable. Changing filters or activities does not reset the timer. Selecting an activity from the wardrobe reveals its category if needed.
 - Focus, short break and long break timers; pause, resume and reset.
 - A long break after every fourth completed focus round. New rounds start manually.
 - Deadline-based countdown catches up after background-tab throttling or device sleep while the page remains open.

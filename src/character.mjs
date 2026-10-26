@@ -15,7 +15,7 @@ export function drawIllustratedFigure(ctx,motion,phase,outfit='sage',layers={}){
  ctx.save();ctx.lineJoin='round';
  drawHairBack(ctx,head,phase,appearance,colors);
  drawFrontBody(ctx,motion,appearance,colors,layers);
- drawHead(ctx,head,phase,appearance,colors);
+ drawHead(ctx,head,phase,appearance,colors,motion.expression);
  ctx.restore();
 }
 

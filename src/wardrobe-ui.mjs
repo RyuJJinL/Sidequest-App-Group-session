@@ -3,6 +3,7 @@ import {WARDROBE_CATEGORIES,OUTFIT_PRESETS,COLOR_PALETTES,applyOutfitPreset,equi
 import {drawIllustratedFigure} from './character.mjs';
 import {frontRunPose} from './running.mjs';
 import {SPORTS,drawCharacter} from './sports.mjs';
+import {ACTIVITY_GROUPS} from './activity-groups.mjs';
 
 const CROPS={face:[0,-103,1.45],hair:[14,-117,1.12],headAccessory:[0,-123,1.6],top:[0,-38,1.45],bottom:[0,63,.83],shoes:[0,128,2.05]};
 const PRESET_LABELS={sage:'Court classic',peach:'Track club'};
@@ -82,8 +83,10 @@ export function mountWardrobe({getAppearance,onChange,getSport,onSportChange}){
   b.append(swatches,document.createTextNode(PRESET_LABELS[key]));
   b.addEventListener('click',()=>choose(applyOutfitPreset(getAppearance(),key),PRESET_LABELS[key]));$('#wardrobe-presets').append(b);
  }
- for(const [key,s] of Object.entries(SPORTS)){
-  const option=document.createElement('option');option.value=key;option.textContent=s.name;$('#wardrobe-sport').append(option);
+ for(const group of ACTIVITY_GROUPS){
+  const optgroup=document.createElement('optgroup');optgroup.label=group.label;
+  for(const key of group.ids){const option=document.createElement('option');option.value=key;option.textContent=SPORTS[key].name;optgroup.append(option);}
+  $('#wardrobe-sport').append(optgroup);
  }
  $('#wardrobe-sport').addEventListener('change',event=>{onSportChange(event.target.value);render();});
  $('#wardrobe-open').addEventListener('click',()=>{render();status('Changes apply immediately');dialog.showModal();});

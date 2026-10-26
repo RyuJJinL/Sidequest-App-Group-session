@@ -4,8 +4,7 @@ import {LEISURE_IDS,leisurePose} from '../src/leisure.mjs';
 import {SPORTS,pose} from '../src/sports.mjs';
 const TAU=Math.PI*2,at=(id,t,rest=false)=>leisurePose(id,t*TAU,rest);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,(a.z??0)-(b.z??0));
-test('eight food and social activities bring the picker to 45 distinct choices',()=>{
- assert.equal(Object.keys(SPORTS).length,45);
+test('eight food and social activities retain distinct motion',()=>{
  for(const id of LEISURE_IDS)assert.equal(pose(id,0).front.leisure.activity,id);
  assert.equal(new Set(LEISURE_IDS.map(id=>JSON.stringify(at(id,.32).arms.map(a=>a.world)))).size,8);
 });

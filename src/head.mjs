@@ -80,14 +80,15 @@ function faceOutline(c,f,colors){
   c.bezierCurveTo(w*.92,24,w,16,w,2);c.bezierCurveTo(w+3,-18,w,-39,0,-36);shape(c,colors.skin,colors.skinInk);
  }
 }
-function features(c,f,phase,colors){
+function features(c,f,phase,colors,expression){
  const male=f.group==='male',ink=colors.skinInk,blink=Math.sin(phase*.23)>.998,eyeX=male?12.5:12;
  c.strokeStyle=ink;c.lineCap='round';
  for(const side of [-1,1]){
   const x=side*eyeX;
-  if(f.smile==='crescent'&&!blink){c.lineWidth=2.5;c.beginPath();c.moveTo(x-4,3);c.quadraticCurveTo(x,-3,x+4,3);c.stroke();}
+  if(expression==='calm'){c.lineWidth=2;c.beginPath();c.moveTo(x-4,2);c.quadraticCurveTo(x,5,x+4,2);c.stroke();}
+  else if(f.smile==='crescent'&&!blink){c.lineWidth=2.5;c.beginPath();c.moveTo(x-4,3);c.quadraticCurveTo(x,-3,x+4,3);c.stroke();}
   else {oval(c,x,2,male?3.4:3,blink?1:f.eyes,ink,null);if(!blink)oval(c,x-.7,.5,.7,1,'#fff2db',null);}
-  if(!male&&['female-heart','female-oval'].includes(f.id)){c.lineWidth=1.4;c.beginPath();c.moveTo(x+side*2,-1);c.lineTo(x+side*5,-3);c.stroke();}
+  if(expression!=='calm'&&!male&&['female-heart','female-oval'].includes(f.id)){c.lineWidth=1.4;c.beginPath();c.moveTo(x+side*2,-1);c.lineTo(x+side*5,-3);c.stroke();}
   oval(c,side*19,13,male?5:7,male?2.5:4,colors.blush,null);
  }
  c.strokeStyle=colors.hairShade;c.lineWidth=f.brows;c.beginPath();c.moveTo(-18,-10);c.quadraticCurveTo(-12,-14,-7,-11);c.moveTo(7,-11);c.quadraticCurveTo(12,-14,18,-10);c.stroke();
@@ -105,7 +106,7 @@ function accessory(c,id){
  polygon(c,[[-29,-30],[-28,-35],[7,-39],[32,-29],[32,-24],[7,-34]],CREAM,null);
  if(id==='striped')polygon(c,[[-29,-27],[-29,-30],[7,-34],[32,-24],[32,-21],[7,-31]],'#657080',null);
 }
-export function drawHead(c,head,phase,a,colors){
+export function drawHead(c,head,phase,a,colors,expression){
  const f=FACES.find(face=>face.id===a.face);
  c.save();c.translate(head.x,head.y);c.lineJoin='round';c.lineCap='round';
  oval(c,-f.width+1,3,6,10,colors.skin,colors.skinInk);oval(c,f.width-1,3,6,10,colors.skin,colors.skinInk);
@@ -114,5 +115,5 @@ export function drawHead(c,head,phase,a,colors){
   const sway=Math.sin(phase)*1;
   c.beginPath();c.moveTo(-28,-4);c.quadraticCurveTo(-38,26,-27+sway,28);c.strokeStyle=INK;c.lineWidth=6;c.stroke();c.strokeStyle=colors.hair;c.lineWidth=3.3;c.stroke();
  }
- features(c,f,phase,colors);c.restore();
+ features(c,f,phase,colors,expression);c.restore();
 }
