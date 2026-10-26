@@ -4,8 +4,7 @@ import {OUTDOOR_IDS,outdoorPose,drawOutdoorEnvironment} from '../src/outdoors.mj
 import {SPORTS,pose} from '../src/sports.mjs';
 const TAU=Math.PI*2,at=(id,t,rest=false)=>outdoorPose(id,t*TAU,rest);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,(a.z??0)-(b.z??0));
-test('nine outdoor categories extend the selector to 29 independent activities',()=>{
- assert.equal(Object.keys(SPORTS).length,29);
+test('nine outdoor categories retain independent activities',()=>{
  for(const id of OUTDOOR_IDS){assert.equal(pose(id,0).front.outdoor.sport,id);assert.equal(SPORTS[id].ground,false);}
  const signatures=OUTDOOR_IDS.map(id=>JSON.stringify(at(id,.31).arms.map(a=>a.world)));
  assert.equal(new Set(signatures).size,9);

@@ -7,6 +7,7 @@ import {drawIllustratedFigure} from './character.mjs';
 import {GAME_IDS,gamePose,drawGameBack,drawGameTable,drawGameFront} from './games.mjs';
 import {FITNESS_IDS,fitnessPose,drawFitnessBack,drawFitnessFront,drawSwimWater} from './fitness.mjs';
 import {OUTDOOR_IDS,outdoorPose,applyOutdoorFrame,drawOutdoorEnvironment,drawOutdoorBack,drawOutdoorMiddle,drawOutdoorTorso,drawOutdoorFront} from './outdoors.mjs';
+import {CREATIVE_IDS,creativePose,drawCreativeBack,drawCreativeMiddle,drawCreativeTorso,drawCreativeFront} from './creative.mjs';
 export const SPORTS = {
   running: {name: 'Running', icon: '↗', verb: 'Find your stride', detail: 'One step. One task. A little further.', period: .85, color: '#c4f17b'},
   pickleball: {name: 'Pickleball', icon: '◒', verb: 'Get in the zone', detail: 'Small wins make a great rally.', period: 1.9, color: '#f2ca81'},
@@ -36,11 +37,19 @@ export const SPORTS = {
   freediving: {name:'Freediving',icon:'⌄',verb:'Find a quieter focus',detail:'Slow down. Move with intention.',period:4.2,color:'#95c9ce',previewScale:1.4,previewX:240,ground:false},
   scubadiving: {name:'Scuba diving',icon:'◌',verb:'Explore one thought at a time',detail:'A calm rhythm. A new perspective.',period:4.8,color:'#a5bfdc',previewScale:1.05,previewX:240,ground:false},
   kayaking: {name:'Kayaking',icon:'⟷',verb:'Keep a steady stroke',detail:'Find your line. Paddle forward.',period:2.8,color:'#e5be8c',previewScale:1.25,previewX:240,ground:false},
-  fishing: {name:'Fishing',icon:'⌕',verb:'Give it a little patience',detail:'Stay present. Let good ideas surface.',period:5.2,color:'#b4c7a0',previewScale:1.05,ground:false}
+  fishing: {name:'Fishing',icon:'⌕',verb:'Give it a little patience',detail:'Stay present. Let good ideas surface.',period:5.2,color:'#b4c7a0',previewScale:1.05,ground:false},
+  painting: {name:'Painting',icon:'◐',verb:'Make room for color',detail:'One brushstroke. A new possibility.',period:4.2,color:'#deb9a2',previewScale:1.25,ground:false},
+  drawing: {name:'Drawing',icon:'✎',verb:'Follow a little curiosity',detail:'Let the next line lead you somewhere.',period:3.8,color:'#b8c9ae',previewScale:1.6,previewX:240,ground:false},
+  pottery: {name:'Pottery',icon:'◡',verb:'Shape a little progress',detail:'A steady hand. A little patience.',period:4.6,color:'#d8ad93',previewScale:1.6,previewX:240,ground:false},
+  photography: {name:'Photography',icon:'▣',verb:'Focus on what you see',detail:'Notice the light. Capture a moment.',period:4.8,color:'#adc8bd',previewScale:1.7},
+  crafts: {name:'Crafts',icon:'✂',verb:'Make something your own',detail:'Small pieces. A little imagination.',period:3.9,color:'#d5b6cf',previewScale:1.6,previewX:240,ground:false},
+  music: {name:'Music',icon:'♬',verb:'Find a creative rhythm',detail:'One chord. One thought at a time.',period:3.6,color:'#e1c591',previewScale:1.5,previewX:240},
+  writing: {name:'Writing',icon:'✒',verb:'Give your ideas a page',detail:'A few words can be a beginning.',period:5.4,color:'#b3c9d8',previewScale:1.6,previewX:240,ground:false},
+  filmmaking: {name:'Filmmaking',icon:'▰',verb:'Make the next scene',detail:'Follow a story. Frame a fresh idea.',period:5.6,color:'#c5b9d9',previewScale:1.45,ground:false}
 };
 export function pose(sport, phase, resting = false) {
   if (!SPORTS[sport]) throw new Error('Unknown sport');
-  const front=OUTDOOR_IDS.includes(sport)?outdoorPose(sport,phase,resting):FITNESS_IDS.includes(sport)?fitnessPose(sport,phase,resting):GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
+  const front=CREATIVE_IDS.includes(sport)?creativePose(sport,phase,resting):OUTDOOR_IDS.includes(sport)?outdoorPose(sport,phase,resting):FITNESS_IDS.includes(sport)?fitnessPose(sport,phase,resting):GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
   return {front,bob:0};
 }
 export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage') {
@@ -52,9 +61,10 @@ export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS
    if(sport==='swimming'){ctx.save();ctx.translate(0,18);ctx.rotate(Math.PI/2);ctx.scale(.88,.88);}
    drawFitnessBack(ctx,front);
   }
+  if(front.creative)drawCreativeBack(ctx,front);
   if(front.game)drawGameBack(ctx,front);
   if(front.equipment&&(front.shoulderRig||front.equipment.depth<0))drawEquipment(ctx,front.equipment,color,colors);
-  drawIllustratedFigure(ctx,front,phase,outfit,front.outdoor?{middle:()=>drawOutdoorMiddle(ctx,front),torso:()=>drawOutdoorTorso(ctx,front)}:front.game?.seated?{middle:()=>drawGameTable(ctx,front)}:undefined);
+  drawIllustratedFigure(ctx,front,phase,outfit,front.creative?{middle:()=>drawCreativeMiddle(ctx,front),torso:()=>drawCreativeTorso(ctx,front)}:front.outdoor?{middle:()=>drawOutdoorMiddle(ctx,front),torso:()=>drawOutdoorTorso(ctx,front)}:front.game?.seated?{middle:()=>drawGameTable(ctx,front)}:undefined);
   if(front.equipment){
    const e=front.equipment;
    if(front.shoulderRig)drawFrontPart(ctx,e.worldGrip,e.worldHead,e.grip,e.head,()=>drawEquipment(ctx,e,color,colors));
@@ -62,6 +72,7 @@ export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS
   }
   if(front.projectile)drawProjectile(ctx,front.projectile,sport,color);
   if(front.game)drawGameFront(ctx,front,colors);
+  if(front.creative)drawCreativeFront(ctx,front,colors);
   if(front.outdoor){drawOutdoorFront(ctx,front,colors);ctx.restore();drawOutdoorEnvironment(ctx,front,true);}
   if(front.fitness){
    drawFitnessFront(ctx,front,colors);
