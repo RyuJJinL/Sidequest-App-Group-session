@@ -8,6 +8,7 @@ import {GAME_IDS,gamePose,drawGameBack,drawGameTable,drawGameFront} from './game
 import {FITNESS_IDS,fitnessPose,drawFitnessBack,drawFitnessFront,drawSwimWater} from './fitness.mjs';
 import {OUTDOOR_IDS,outdoorPose,applyOutdoorFrame,drawOutdoorEnvironment,drawOutdoorBack,drawOutdoorMiddle,drawOutdoorTorso,drawOutdoorFront} from './outdoors.mjs';
 import {CREATIVE_IDS,creativePose,drawCreativeBack,drawCreativeMiddle,drawCreativeTorso,drawCreativeFront} from './creative.mjs';
+import {LEISURE_IDS,leisurePose,drawLeisureBack,drawLeisureMiddle,drawLeisureTorso,drawLeisureFront} from './leisure.mjs';
 export const SPORTS = {
   running: {name: 'Running', icon: '↗', verb: 'Find your stride', detail: 'One step. One task. A little further.', period: .85, color: '#c4f17b'},
   pickleball: {name: 'Pickleball', icon: '◒', verb: 'Get in the zone', detail: 'Small wins make a great rally.', period: 1.9, color: '#f2ca81'},
@@ -45,11 +46,19 @@ export const SPORTS = {
   crafts: {name:'Crafts',icon:'✂',verb:'Make something your own',detail:'Small pieces. A little imagination.',period:3.9,color:'#d5b6cf',previewScale:1.6,previewX:240,ground:false},
   music: {name:'Music',icon:'♬',verb:'Find a creative rhythm',detail:'One chord. One thought at a time.',period:3.6,color:'#e1c591',previewScale:1.5,previewX:240},
   writing: {name:'Writing',icon:'✒',verb:'Give your ideas a page',detail:'A few words can be a beginning.',period:5.4,color:'#b3c9d8',previewScale:1.6,previewX:240,ground:false},
-  filmmaking: {name:'Filmmaking',icon:'▰',verb:'Make the next scene',detail:'Follow a story. Frame a fresh idea.',period:5.6,color:'#c5b9d9',previewScale:1.45,ground:false}
+  filmmaking: {name:'Filmmaking',icon:'▰',verb:'Make the next scene',detail:'Follow a story. Frame a fresh idea.',period:5.6,color:'#c5b9d9',previewScale:1.45,ground:false},
+  cafe: {name:'Cafe',icon:'☕',verb:'Savor a little stillness',detail:'A warm cup. A little space to think.',period:5.2,color:'#cfbd99',previewScale:1.6,previewX:240,ground:false},
+  foodtrips: {name:'Food Trips',icon:'♧',verb:'Follow your curiosity',detail:'Try a little something new.',period:4.8,color:'#e1b593',previewScale:1.5,previewX:240,ground:false},
+  cooking: {name:'Cooking',icon:'◒',verb:'Make a little goodness',detail:'Stir slowly. Let an idea simmer.',period:3.8,color:'#bdd09d',previewScale:1.5,previewX:240,ground:false},
+  baking: {name:'Baking',icon:'▱',verb:'Give good things time',detail:'A steady rhythm. Something worth making.',period:3.6,color:'#dfc49f',previewScale:1.5,previewX:240,ground:false},
+  picnics: {name:'Picnics',icon:'▧',verb:'Take a softer pace',detail:'Good food. A little fresh perspective.',period:5.6,color:'#d5b1a4',previewScale:1.3,previewX:240,ground:false},
+  karaoke: {name:'Karaoke',icon:'♩',verb:'Find your voice',detail:'A little confidence. Your own rhythm.',period:3.2,color:'#d5b1d0',previewScale:1.2,ground:false},
+  trivianights: {name:'Trivia Nights',icon:'?',verb:'Let curiosity lead',detail:'One good question can open a new door.',period:5.4,color:'#d5c78f',previewScale:1.45,previewX:240,ground:false},
+  communitymeetups: {name:'Community Meetups',icon:'♧',verb:'Make room for connection',detail:'A friendly hello. A new perspective.',period:4.8,color:'#afc8b6',previewScale:1.3,previewX:240,ground:false}
 };
 export function pose(sport, phase, resting = false) {
   if (!SPORTS[sport]) throw new Error('Unknown sport');
-  const front=CREATIVE_IDS.includes(sport)?creativePose(sport,phase,resting):OUTDOOR_IDS.includes(sport)?outdoorPose(sport,phase,resting):FITNESS_IDS.includes(sport)?fitnessPose(sport,phase,resting):GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
+  const front=LEISURE_IDS.includes(sport)?leisurePose(sport,phase,resting):CREATIVE_IDS.includes(sport)?creativePose(sport,phase,resting):OUTDOOR_IDS.includes(sport)?outdoorPose(sport,phase,resting):FITNESS_IDS.includes(sport)?fitnessPose(sport,phase,resting):GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
   return {front,bob:0};
 }
 export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage') {
@@ -61,10 +70,11 @@ export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS
    if(sport==='swimming'){ctx.save();ctx.translate(0,18);ctx.rotate(Math.PI/2);ctx.scale(.88,.88);}
    drawFitnessBack(ctx,front);
   }
+  if(front.leisure)drawLeisureBack(ctx,front);
   if(front.creative)drawCreativeBack(ctx,front);
   if(front.game)drawGameBack(ctx,front);
   if(front.equipment&&(front.shoulderRig||front.equipment.depth<0))drawEquipment(ctx,front.equipment,color,colors);
-  drawIllustratedFigure(ctx,front,phase,outfit,front.creative?{middle:()=>drawCreativeMiddle(ctx,front),torso:()=>drawCreativeTorso(ctx,front)}:front.outdoor?{middle:()=>drawOutdoorMiddle(ctx,front),torso:()=>drawOutdoorTorso(ctx,front)}:front.game?.seated?{middle:()=>drawGameTable(ctx,front)}:undefined);
+  drawIllustratedFigure(ctx,front,phase,outfit,front.leisure?{middle:()=>drawLeisureMiddle(ctx,front),torso:()=>drawLeisureTorso(ctx,front)}:front.creative?{middle:()=>drawCreativeMiddle(ctx,front),torso:()=>drawCreativeTorso(ctx,front)}:front.outdoor?{middle:()=>drawOutdoorMiddle(ctx,front),torso:()=>drawOutdoorTorso(ctx,front)}:front.game?.seated?{middle:()=>drawGameTable(ctx,front)}:undefined);
   if(front.equipment){
    const e=front.equipment;
    if(front.shoulderRig)drawFrontPart(ctx,e.worldGrip,e.worldHead,e.grip,e.head,()=>drawEquipment(ctx,e,color,colors));
@@ -73,6 +83,7 @@ export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS
   if(front.projectile)drawProjectile(ctx,front.projectile,sport,color);
   if(front.game)drawGameFront(ctx,front,colors);
   if(front.creative)drawCreativeFront(ctx,front,colors);
+  if(front.leisure)drawLeisureFront(ctx,front,colors);
   if(front.outdoor){drawOutdoorFront(ctx,front,colors);ctx.restore();drawOutdoorEnvironment(ctx,front,true);}
   if(front.fitness){
    drawFitnessFront(ctx,front,colors);

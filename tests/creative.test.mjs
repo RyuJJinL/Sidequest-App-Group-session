@@ -4,8 +4,7 @@ import {CREATIVE_IDS,creativePose} from '../src/creative.mjs';
 import {SPORTS,pose} from '../src/sports.mjs';
 const TAU=Math.PI*2,at=(id,t,rest=false)=>creativePose(id,t*TAU,rest);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,(a.z??0)-(b.z??0));
-test('eight distinct creative activities extend the picker to 37 choices',()=>{
- assert.equal(Object.keys(SPORTS).length,37);
+test('eight creative activities retain distinct motion and seating',()=>{
  for(const id of CREATIVE_IDS)assert.equal(pose(id,0).front.creative.activity,id);
  const signatures=CREATIVE_IDS.map(id=>JSON.stringify(at(id,.31).arms.map(a=>a.world)));
  assert.equal(new Set(signatures).size,8);
