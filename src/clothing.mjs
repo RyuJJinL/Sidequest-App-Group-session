@@ -3,7 +3,8 @@
 // Shared armhole vertices stitch the sleeves to the bodice. Bone weights also
 // drive the colour panels, hems and seams; no decoration has its own animation.
 import {normalizeAppearance} from './wardrobe.mjs';
-const INK='#543c35',SKIN='#efb59b',CREAM='#f1dfbf',SAGE='#94a68a',PEACH='#e9aa8e',SLATE='#657080';
+import {appearanceColors} from './appearance-colors.mjs';
+const INK='#543c35',CREAM='#f1dfbf',SAGE='#94a68a',PEACH='#e9aa8e',SLATE='#657080';
 const mix=(a,b,t)=>a+(b-a)*t;
 const clamp=x=>Math.max(0,Math.min(1,x));
 const smooth=x=>{x=clamp(x);return x*x*(3-2*x);};
@@ -171,7 +172,7 @@ export function buildClothing(motion,outfit='sage'){
   for(const v of mesh.vertices)v.visibility=rig.depth(v.world);
   return {...mesh,side};
  });
- return {rig,torso,sleeves,waistband,shorts,legs,bareArms,jacket,leggings,appearance,torsoPoint:(x,y)=>torsoVertex(rig,x,y)};
+ return {rig,torso,sleeves,waistband,shorts,legs,bareArms,jacket,leggings,appearance,colors:appearanceColors(appearance),torsoPoint:(x,y)=>torsoVertex(rig,x,y)};
 }
 
 function polygonPath(ctx,points,close=true){ctx.moveTo(points[0].x,points[0].y);for(const p of points.slice(1))ctx.lineTo(p.x,p.y);if(close)ctx.closePath();}
@@ -215,11 +216,11 @@ function meshLine(ctx,points,front,color=INK,width=2){
 const boundary=mesh=>[...mesh.rows.map(r=>r[0]),...mesh.rows.toReversed().map(r=>r.at(-1))];
 export function drawClothedLeg(ctx,model,side){
  const mesh=model.legs.find(l=>l.side===side),{rows}=mesh;
- meshFill(ctx,mesh,model.leggings?'#55545a':SKIN);
- line(ctx,rows.map(r=>r[0]));line(ctx,rows.map(r=>r.at(-1)));
+ meshFill(ctx,mesh,model.leggings?'#55545a':model.colors.skin);
+ line(ctx,rows.map(r=>r[0]),model.leggings?INK:model.colors.skinInk);line(ctx,rows.map(r=>r.at(-1)),model.leggings?INK:model.colors.skinInk);
  // Sock / exposed ankle rings use the same vertices as the leg surface.
  const sock=model.leggings?11:10;
- meshFill(ctx,mesh,model.leggings?SKIN:'#f3e9d9',false,sock);
+ meshFill(ctx,mesh,model.leggings?model.colors.skin:'#f3e9d9',false,sock);
  line(ctx,rows[sock],model.leggings?INK:'#b7aa96',1.4);
  if(model.leggings){
   const knee=rows[6],lower=rows[7];
@@ -275,8 +276,8 @@ export function drawClothedArm(ctx,model,side,front=false){
  if(!model.jacket){
   // Bare arm is another continuous weighted ribbon, including a blended elbow.
   const skin=model.bareArms.find(a=>a.side===side);
-  meshFill(ctx,skin,SKIN,front);
-  for(const i of [0,2])meshLine(ctx,skin.rows.map(r=>r[i]),front);
+  meshFill(ctx,skin,model.colors.skin,front);
+  for(const i of [0,2])meshLine(ctx,skin.rows.map(r=>r[i]),front,model.colors.skinInk);
  }
  const shoulder=front?clipClothDepth(mesh.shoulderPatch):mesh.shoulderPatch;
  if(shoulder.length>=3)fill(ctx,shoulder,model.jacket?PEACH:SAGE);
@@ -298,7 +299,7 @@ export function drawClothedArm(ctx,model,side,front=false){
  if(!front||model.rig.depth(arm.world.wrist)>=0){
   const dx=wrist.x-arm.elbow.x,dy=wrist.y-arm.elbow.y;
   ctx.save();ctx.translate(wrist.x,wrist.y);ctx.rotate(Math.atan2(dy,dx)-Math.PI/2);
-  ctx.beginPath();ctx.ellipse(0,0,arm.handOpen?5.8:6.8,arm.handOpen?9:7.7,0,0,Math.PI*2);ctx.fillStyle=SKIN;ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=1.6;ctx.stroke();
-  line(ctx,[point(-2,0),point(2.5,1)],'#b67664',1);ctx.restore();
+  ctx.beginPath();ctx.ellipse(0,0,arm.handOpen?5.8:6.8,arm.handOpen?9:7.7,0,0,Math.PI*2);ctx.fillStyle=model.colors.skin;ctx.fill();ctx.strokeStyle=model.colors.skinInk;ctx.lineWidth=1.6;ctx.stroke();
+  line(ctx,[point(-2,0),point(2.5,1)],model.colors.skinShade,1);ctx.restore();
  }
 }

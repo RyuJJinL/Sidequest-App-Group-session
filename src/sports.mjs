@@ -1,4 +1,5 @@
 import {drawFrontPart} from './arm-depth.mjs';
+import {appearanceColors} from './appearance-colors.mjs';
 // SPDX-License-Identifier: GPL-3.0-or-later
 import {frontWalkPose,courtPose} from './actions.mjs';
 import {frontRunPose} from './running.mjs';
@@ -18,19 +19,19 @@ export function pose(sport, phase, resting = false) {
   return {front,bob:0};
 }
 export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage') {
-  const {front}=pose(sport,phase,resting);
+  const {front}=pose(sport,phase,resting),colors=appearanceColors(outfit);
   ctx.save();
-  if(front.equipment&&(front.shoulderRig||front.equipment.depth<0))drawEquipment(ctx,front.equipment,color);
+  if(front.equipment&&(front.shoulderRig||front.equipment.depth<0))drawEquipment(ctx,front.equipment,color,colors);
   drawIllustratedFigure(ctx,front,phase,outfit);
   if(front.equipment){
    const e=front.equipment;
-   if(front.shoulderRig)drawFrontPart(ctx,e.worldGrip,e.worldHead,e.grip,e.head,()=>drawEquipment(ctx,e,color));
-   else if(e.depth>=0)drawEquipment(ctx,e,color);
+   if(front.shoulderRig)drawFrontPart(ctx,e.worldGrip,e.worldHead,e.grip,e.head,()=>drawEquipment(ctx,e,color,colors));
+   else if(e.depth>=0)drawEquipment(ctx,e,color,colors);
   }
   if(front.projectile)drawProjectile(ctx,front.projectile,sport,color);
   ctx.restore();
 }
-function drawEquipment(ctx,e,color){
+function drawEquipment(ctx,e,color,colors){
   ctx.save();ctx.translate(e.grip.x,e.grip.y);ctx.rotate(e.angle);
   ctx.lineCap='round';ctx.strokeStyle='#eedfbd';ctx.lineWidth=5;
   ctx.beginPath();ctx.moveTo(-3,0);ctx.lineTo(e.headDistance*.7,0);ctx.stroke();
@@ -54,7 +55,7 @@ function drawEquipment(ctx,e,color){
   else{ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);ctx.stroke();ctx.save();ctx.clip();ctx.lineWidth=.8;ctx.strokeStyle='#f2dfbd99';for(let i=-24;i<=24;i+=6){ctx.beginPath();ctx.moveTo(-rx,i);ctx.lineTo(rx,i);ctx.moveTo(i,-ry);ctx.lineTo(i,ry);ctx.stroke();}ctx.restore();}
   ctx.restore();
   // Fingers overlap the grip, rather than leaving the equipment floating.
-  ctx.save();ctx.translate(e.grip.x,e.grip.y);ctx.rotate(e.angle);ctx.fillStyle='#efb59b';ctx.strokeStyle='#543c35';ctx.lineWidth=1.2;ctx.beginPath();ctx.ellipse(0,0,5,7,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+  ctx.save();ctx.translate(e.grip.x,e.grip.y);ctx.rotate(e.angle);ctx.fillStyle=colors.skin;ctx.strokeStyle=colors.skinInk;ctx.lineWidth=1.2;ctx.beginPath();ctx.ellipse(0,0,5,7,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
 }
 function drawProjectile(ctx,p,sport,color){
  ctx.save();ctx.globalAlpha=p.opacity;ctx.translate(p.x,p.y);
