@@ -49,6 +49,20 @@ export function frontWalkPose(phase,resting=false){
 // the hand. Racket lag is relative to the forearm, never an independent path.
 // Slow preparation, a short acceleration window, then a longer deceleration.
 const STROKES={
+ padel:{head:38,contact:.42,
+  arm:[[0,.40,.55,1.45],[.18,.45,-.25,1.50],[.28,.48,-.45,1.45],[.34,.54,-.15,1.25],[.42,.85,.65,.68],[.53,1.05,1.50,.95],[.64,1.15,1.85,1.30],[.83,.46,.85,1.45]],
+  wrist:[[0,.85,.70,1.55],[.18,1.0,.45,1.65],[.28,1.05,.35,1.70],[.34,.95,.40,1.65],[.42,.58,.70,1.45],[.53,.70,.65,1.15],[.64,.85,.65,1.05],[.83,.85,.70,1.55]],
+  body:[[0,0,0,0],[.18,4,-.20,-.40],[.28,5,-.24,-.50],[.34,3,-.05,-.35],[.42,0,.12,.10],[.53,-3,.23,.36],[.64,-4,.25,.42],[.83,0,.02,.06]],
+  support:[[0,.32,.95,1.55],[.18,.42,1.20,1.50],[.28,.48,1.30,1.45],[.42,.45,.80,1.25],[.64,.35,1.0,1.50],[.83,.32,.95,1.55]],
+  supportSwivel:[[0,1.80,0,0],[.28,1.70,0,0],[.42,1.55,0,0],[.64,1.80,0,0]],
+  incoming:[185,-55],outgoing:[-180,-65]},
+ tabletennis:{head:25,contact:.42,crouch:6,
+  arm:[[0,.40,.65,1.45],[.16,.43,.15,1.50],[.28,.46,-.10,1.50],[.34,.55,.20,1.20],[.42,.80,.80,.75],[.52,.96,1.50,.95],[.62,1.02,1.70,1.25],[.80,.44,.85,1.45],[.92,.40,.65,1.45]],
+  wrist:[[0,.62,.80,1.50],[.16,.72,.60,1.55],[.28,.78,.50,1.60],[.34,.72,.55,1.50],[.42,.40,.65,1.30],[.52,.45,.55,1.15],[.62,.55,.65,1.15],[.80,.62,.80,1.50]],
+  body:[[0,0,0,0],[.16,2,-.10,-.20],[.28,3,-.14,-.32],[.34,2,-.04,-.20],[.42,0,.07,.08],[.52,-2,.12,.24],[.62,-2,.13,.28],[.80,0,.02,.05],[.92,0,0,0]],
+  support:[[0,.28,.95,1.60],[.28,.34,1.10,1.55],[.42,.34,.85,1.45],[.62,.30,1.0,1.55],[.80,.28,.95,1.60]],
+  supportSwivel:[[0,1.80,0,0],[.28,1.75,0,0],[.42,1.60,0,0],[.62,1.80,0,0]],
+  incoming:[150,-20],outgoing:[-150,-28]},
  pickleball:{head:40,contact:.42,
   arm:[[0,.42,.55,1.35],[.20,.40,-.65,1.30],[.33,.48,-.40,1.15],[.42,.74,.55,.65],[.49,.80,1.10,.85],[.61,.95,1.80,1.20],[.80,.50,.90,1.30]],
   wrist:[[0,.80,.65,1.65],[.20,.85,.50,1.80],[.33,1.0,.40,1.75],[.42,.65,.60,1.65],[.49,.90,.65,1.20],[.61,1.0,.70,.95],[.80,.80,.65,1.65]],
@@ -88,7 +102,7 @@ function articulatedArm(start,elevation,sweep,flex,swivel,chestYaw,side=1){
 }
 function racketFrame(arm,cock,roll,length,sport){
  const v=arm.forearm;
- const up=sport==='badminton'?arm.wristUp:unit(sub({x:0,y:-1,z:0},mul(v,-v.y)));
+ const up=['badminton','padel','tabletennis'].includes(sport)?arm.wristUp:unit(sub({x:0,y:-1,z:0},mul(v,-v.y)));
  // Badminton inherits the elbow frame through vertical; global-up projection
  // would spin abruptly as the forearm approaches a vertical overhead reach.
  const sideways=unit(cross(v,up));
@@ -105,7 +119,7 @@ export function courtPose(sport,phase,resting=false,withProjectile=true){
  const t=((phase/TAU)%1+1)%1,p=resting?0:phase;
  const [elevation,sweep,flex]=sample(c.arm,p),[cock,roll,swivel]=sample(c.wrist,p);
  const [weight,hipYaw,chestYaw]=sample(c.body,p);
- const hip={x:weight,y:8+(resting?0:1.5*Math.sin(phase)**2)};
+ const hip={x:weight,y:8+(c.crouch??0)+(resting?0:1.5*Math.sin(phase)**2)};
  const neck={x:hip.x-(sport==='badminton'?2:1)*Math.sin(chestYaw),y:hip.y-78};
  const legs=[-1,1].map(side=>{
   const start=add({x:hip.x,y:hip.y,z:0},turn({x:side*13,y:0,z:0},hipYaw));
@@ -125,7 +139,7 @@ export function courtPose(sport,phase,resting=false,withProjectile=true){
  }
  const result=rig(hip,neck,legs,[free,dominant],phase,resting);
  result.torso={chestScale:Math.cos(chestYaw),hipYaw,chestYaw};
- if(sport==='tennis'||sport==='badminton'){
+ if(c.support){
   // The shirt and sleeves use the actual projected clavicle anchors, rather
   // than scaling an unrelated front-facing shirt over rotating shoulders.
   result.shoulderRig={

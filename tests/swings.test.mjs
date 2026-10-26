@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {courtPose} from '../src/actions.mjs';
-const TAU=Math.PI*2,SPORTS=['pickleball','tennis','badminton'];
+const TAU=Math.PI*2,SPORTS=['pickleball','tennis','badminton','padel','tabletennis'];
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
 function averageHeadSpeed(sport,start,end){
  let sum=0,prior=courtPose(sport,start*TAU).equipment.worldHead;

@@ -26,14 +26,14 @@ test('walking keeps ground contact with a lower foot lift and relaxed arms',()=>
  assert.ok(walkLift>5 && walkLift<runLift*.65);
 });
 test('court sports have planted feet and equipment attached to the dominant hand',()=>{
- for(const sport of ['pickleball','tennis','badminton'])for(let p=0;p<TAU;p+=.03){
+ for(const sport of ['pickleball','tennis','badminton','padel','tabletennis'])for(let p=0;p<TAU;p+=.03){
   const r=pose(sport,p).front,e=r.equipment,hand=r.arms.find(a=>a.side===1).wrist;
   assert.deepEqual(e.grip,hand);assert.ok(Math.abs(Math.hypot(e.head.x-hand.x,e.head.y-hand.y)-e.headDistance)<1e-8);
   for(const leg of r.legs){assert.ok(Math.abs(leg.ankle.x-leg.side*30*(1+leg.side*5*.0012))<1e-8);assert.ok(Math.abs(leg.ankle.y-122)<1e-8);}
  }
 });
 test('balls and shuttle meet the racket at impact and disappear during rest',()=>{
- for(const sport of ['pickleball','tennis','badminton']){
+ for(const sport of ['pickleball','tennis','badminton','padel','tabletennis']){
   const r=pose(sport,.42*TAU).front;
   assert.ok(Math.hypot(r.projectile.x-r.equipment.head.x,r.projectile.y-r.equipment.head.y)<1e-8);
   assert.equal(pose(sport,2,true).front.projectile,undefined);

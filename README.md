@@ -1,6 +1,6 @@
 # Sidequest · Sports Focus
 
-A browser Pomodoro app with animated running, pickleball, tennis, badminton and walking companions. Built using the articulated figure and cyclic motion interpolation from [StykAnimate](https://github.com/filippocalippo/StykAnimate-App).
+A browser Pomodoro app with animated running, pickleball, tennis, padel, table tennis, badminton and walking companions. Built using the articulated figure and cyclic motion interpolation from [StykAnimate](https://github.com/filippocalippo/StykAnimate-App).
 
 ## Run
 
@@ -23,6 +23,7 @@ npm test
 - Both outfits use weighted 2D clothing meshes on the existing body skeleton. Shirt and sleeves share armhole vertices; the waist follows the pelvis while each shorts opening follows its thigh. Continuous jacket sleeves and leggings blend across elbows and knees, with volume corrections at bends. Collar, zipper and colour panels deform with the shirt surface.
 - Front-facing running with separate shoulder and hip anchors, opposite arm/leg timing, depth-based knee recovery and forward-facing shoes.
 - Forward walking with relaxed opposite arm swings, low foot lift and continuous ground contact.
+- Padel adds a controlled forehand with a short perforated teardrop racket and a felt ball. Table tennis adds a quicker compact drive, a lower ready stance, a small red paddle and a white ball. Both sports use the same weighted outfits, continuous supporting arms and depth-aware equipment as the existing characters.
 - Joint-driven pickleball and tennis forehands and a badminton overhead stroke: hips/chest load before the elbow opens into contact, the racket releases its wrist lag, and the arm decelerates across the body. Supporting arms balance or guide the stroke; racket faces rotate with the forearm.
 - Tennis and badminton shoulder sockets and sleeves share the projected collarbone anchors. Arm segments and rackets reveal progressively across the chest, avoiding whole-limb front/back layer switches. The tennis free arm follows a continuous shoulder-led path.
 - Badminton uses the supplied compact-stroke references: chest-height support hand, a stable elbow-relative racket frame, and a slower 2.8-second preparation/contact/follow-through/recovery cycle.
