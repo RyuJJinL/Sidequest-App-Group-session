@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import {FocusTimer, formatTime, DEFAULTS} from './timer.mjs';
 import {SPORTS, drawCharacter} from './sports.mjs';
+import {restoreAppearance} from './wardrobe.mjs';
+import {mountWardrobe} from './wardrobe-ui.mjs';
 const $ = s => document.querySelector(s);
 let saved = {};
 try {saved = JSON.parse(localStorage.getItem('sidequest-v1')) || {};} catch {}
 const timer = new FocusTimer(saved.settings);
 let sport = Object.hasOwn(SPORTS, saved.sport) ? saved.sport : 'running';
-let outfit = saved.outfit === 'peach' ? 'peach' : 'sage';
+let appearance = restoreAppearance(saved);
 let sound = saved.sound !== false;
 let audio;
 function save() {
-  try {localStorage.setItem('sidequest-v1', JSON.stringify({settings: timer.settings, sport, outfit, sound, task: $('#task').value}));} catch {}
+  try {localStorage.setItem('sidequest-v1', JSON.stringify({settings: timer.settings, sport, appearance, sound, task: $('#task').value}));return true;} catch {return false;}
 }
 $('#task').value = typeof saved.task === 'string' ? saved.task.slice(0,120) : '';
 $('#task').addEventListener('input', save);
@@ -39,22 +41,23 @@ function paint() {
   ctx.save();ctx.translate(430,330);ctx.scale(1.35,1.35);
   ctx.fillStyle='#102a2266';ctx.beginPath();ctx.ellipse(0,136,83,9,0,0,Math.PI*2);ctx.fill();
   ctx.strokeStyle='#8dbd8155';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-260,145);ctx.lineTo(320,145);ctx.stroke();
-  drawCharacter(ctx,sport,phase,timer.mode!=='focus'||!timer.running,SPORTS[sport].color,outfit);
+  drawCharacter(ctx,sport,phase,timer.mode!=='focus'||!timer.running,SPORTS[sport].color,appearance);
   ctx.restore();
 }
+const wardrobe=mountWardrobe({
+ getAppearance:()=>appearance,
+ onChange:next=>{appearance=next;paint();return save();},
+ getSport:()=>sport,
+ onSportChange:key=>selectSport(key)
+});
 function animate(timestamp) {
   const elapsed = lastFrame === null ? 0 : Math.min(.08,(timestamp-lastFrame)/1000);
   lastFrame = timestamp;
   if (!reducedMotion.matches && !document.hidden) phase += elapsed * Math.PI * 2 / SPORTS[sport].period;
   paint();
+  wardrobe.paintPreview(phase,reducedMotion.matches);
   requestAnimationFrame(animate);
 }
-function selectOutfit(key) {
- outfit=key;
- for(const b of document.querySelectorAll('[data-outfit]'))b.setAttribute('aria-pressed',b.dataset.outfit===outfit);
- paint();save();
-}
-for(const b of document.querySelectorAll('[data-outfit]'))b.addEventListener('click',()=>selectOutfit(b.dataset.outfit));
 function selectSport(key) {
   sport=key;phase=0;
   const s=SPORTS[key];
@@ -100,4 +103,4 @@ $('#settings-close').addEventListener('click',()=>dialog.close());
 form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;timer.configure(Object.fromEntries(new FormData(form)));timer.reset();sound=form.elements.sound.checked;save();render();dialog.close();announce('Your timer settings are saved.');});
 document.addEventListener('visibilitychange',()=>{lastFrame=null;checkTimer();});
 window.addEventListener('pageshow',checkTimer);
-selectOutfit(outfit);selectSport(sport);render();requestAnimationFrame(animate);setInterval(checkTimer,250);
+selectSport(sport);render();requestAnimationFrame(animate);setInterval(checkTimer,250);

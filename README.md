@@ -20,6 +20,7 @@ npm test
 ## Features
 
 - Two illustrated outfits based on the supplied character photos and videos: sage court wear and peach/slate track wear. Ponytail, striped headband, facial details and sneakers follow the articulated rig.
+- A visual wardrobe with six independent categories: two facial expressions, ponytail/bun hair, striped/sage/no headband, polo/jacket tops, cream shorts/mauve shorts with leggings, and sage/rose sneakers. Mix and match all parts, preview them in any sport, or start from either original full outfit. Changes apply immediately and save on this browser when storage is available. Existing full-outfit preferences migrate automatically.
 - Both outfits use weighted 2D clothing meshes on the existing body skeleton. Shirt and sleeves share armhole vertices; the waist follows the pelvis while each shorts opening follows its thigh. Continuous jacket sleeves and leggings blend across elbows and knees, with volume corrections at bends. Collar, zipper and colour panels deform with the shirt surface.
 - Front-facing running with separate shoulder and hip anchors, opposite arm/leg timing, depth-based knee recovery and forward-facing shoes.
 - Forward walking with relaxed opposite arm swings, low foot lift and continuous ground contact.
@@ -32,7 +33,7 @@ npm test
 - A long break after every fourth completed focus round. New rounds start manually.
 - Deadline-based countdown catches up after background-tab throttling or device sleep while the page remains open.
 - Custom durations (1–120 minutes), optional completion chime and a session-purpose note.
-- Sport, settings and purpose note are saved locally when browser storage is available.
+- Sport, appearance, settings and purpose note are saved locally when browser storage is available.
 - Responsive layout, keyboard-accessible controls and reduced-motion support.
 
 Completed rounds and active countdown are per page session; reloading resets them. Reduced motion shows a static character pose. Completion sounds require a user interaction and browser audio support. There is no account, backend, online group session or notification service in this first version.

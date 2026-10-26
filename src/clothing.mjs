@@ -2,6 +2,7 @@
 // A small weighted 2D clothing mesh on the avatar's existing depth-aware rig.
 // Shared armhole vertices stitch the sleeves to the bodice. Bone weights also
 // drive the colour panels, hems and seams; no decoration has its own animation.
+import {normalizeAppearance} from './wardrobe.mjs';
 const INK='#543c35',SKIN='#efb59b',CREAM='#f1dfbf',SAGE='#94a68a',PEACH='#e9aa8e',SLATE='#657080';
 const mix=(a,b,t)=>a+(b-a)*t;
 const clamp=x=>Math.max(0,Math.min(1,x));
@@ -148,7 +149,7 @@ function shortsWeights(p,side){
  return {pelvis:1-thigh,[`thigh${side}`]:thigh};
 }
 export function buildClothing(motion,outfit='sage'){
- const rig=createClothingRig(motion),jacket=outfit==='peach';
+ const appearance=normalizeAppearance(outfit),rig=createClothingRig(motion),jacket=appearance.top==='jacket',leggings=appearance.bottom==='leggings';
  const torso=grid([-68,-49,-35,-19,-5].map((y,r)=>[-1,-.5,0,.5,1].map(u=>{
   const width=[25,21,22.5,23,23][r],top=r===0?-5*(1-Math.abs(u)):0;
   return torsoVertex(rig,u*width,y+top);
@@ -170,7 +171,7 @@ export function buildClothing(motion,outfit='sage'){
   for(const v of mesh.vertices)v.visibility=rig.depth(v.world);
   return {...mesh,side};
  });
- return {rig,torso,sleeves,waistband,shorts,legs,bareArms,jacket,torsoPoint:(x,y)=>torsoVertex(rig,x,y)};
+ return {rig,torso,sleeves,waistband,shorts,legs,bareArms,jacket,leggings,appearance,torsoPoint:(x,y)=>torsoVertex(rig,x,y)};
 }
 
 function polygonPath(ctx,points,close=true){ctx.moveTo(points[0].x,points[0].y);for(const p of points.slice(1))ctx.lineTo(p.x,p.y);if(close)ctx.closePath();}
@@ -214,19 +215,19 @@ function meshLine(ctx,points,front,color=INK,width=2){
 const boundary=mesh=>[...mesh.rows.map(r=>r[0]),...mesh.rows.toReversed().map(r=>r.at(-1))];
 export function drawClothedLeg(ctx,model,side){
  const mesh=model.legs.find(l=>l.side===side),{rows}=mesh;
- meshFill(ctx,mesh,model.jacket?'#55545a':SKIN);
+ meshFill(ctx,mesh,model.leggings?'#55545a':SKIN);
  line(ctx,rows.map(r=>r[0]));line(ctx,rows.map(r=>r.at(-1)));
  // Sock / exposed ankle rings use the same vertices as the leg surface.
- const sock=model.jacket?11:10;
- meshFill(ctx,mesh,model.jacket?SKIN:'#f3e9d9',false,sock);
- line(ctx,rows[sock],model.jacket?INK:'#b7aa96',1.4);
- if(model.jacket){
+ const sock=model.leggings?11:10;
+ meshFill(ctx,mesh,model.leggings?SKIN:'#f3e9d9',false,sock);
+ line(ctx,rows[sock],model.leggings?INK:'#b7aa96',1.4);
+ if(model.leggings){
   const knee=rows[6],lower=rows[7];
   line(ctx,[lerp(knee[0],knee[1],.5),lerp(lower[0],lower[1],.55)],'#777078',1.1);
  }
 }
 export function drawClothedShorts(ctx,model){
- const color=model.jacket?'#be8c8d':CREAM,trim=model.jacket?'#e6b5aa':'#c6b397';
+ const color=model.leggings?'#be8c8d':CREAM,trim=model.leggings?'#e6b5aa':'#c6b397';
  meshFill(ctx,model.waistband,color);
  for(const mesh of model.shorts){
   meshFill(ctx,mesh,color);
