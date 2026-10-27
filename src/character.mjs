@@ -1,3 +1,4 @@
+import {figureSlots} from './rig-slots.mjs';
 import {buildClothing,drawClothedLeg,drawClothedShorts,drawClothedTorso,drawClothedArm} from './clothing.mjs';
 import {normalizeAppearance} from './wardrobe.mjs';
 import {appearanceColors} from './appearance-colors.mjs';
@@ -11,11 +12,13 @@ function capsule(ctx,a,b,width,color){ctx.lineCap='round';ctx.lineWidth=width+4;
 function oval(ctx,x,y,rx,ry,color,stroke=INK){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2.5;ctx.stroke();}}
 export function drawIllustratedFigure(ctx,motion,phase,outfit='sage',layers={}){
  const appearance=normalizeAppearance(outfit),colors=appearanceColors(appearance);
- const head={x:motion.neck.x,y:motion.neck.y-27};
+ const h=motion.headRig,headScale=(h?.scale??1)*(appearance.headSize??1);
+ const head={x:motion.neck.x,y:motion.neck.y-(h?23:27)};
+ const headLayer=draw=>{ctx.save();if(h||headScale!==1){ctx.translate(head.x,head.y);ctx.rotate(h?.tilt??0);ctx.scale(headScale,headScale);ctx.translate(-head.x,-head.y);}draw();ctx.restore();};
  ctx.save();ctx.lineJoin='round';
- drawHairBack(ctx,head,phase,appearance,colors);
+ headLayer(()=>drawHairBack(ctx,head,h?.hairPhase??phase,appearance,colors));
  drawFrontBody(ctx,motion,appearance,colors,layers);
- drawHead(ctx,head,phase,appearance,colors,motion.expression);
+ headLayer(()=>drawHead(ctx,head,h?.eyePhase??phase,appearance,colors,motion.expression));
  ctx.restore();
 }
 
@@ -33,18 +36,14 @@ function frontShoe(ctx,leg,color){
 // sleeves and shorts share mesh vertices at their attachment boundaries.
 function drawFrontBody(ctx,motion,appearance,colors,layers){
  const clothes=buildClothing(motion,appearance);
- for(const side of motion.legOrder){
-  drawClothedLeg(ctx,clothes,side);
-  frontShoe(ctx,motion.legs.find(l=>l.side===side),appearance.shoes==='rose'?'#bb8788':SAGE);
+ for(const slot of figureSlots(motion)){
+  if(slot.kind==='leg')drawClothedLeg(ctx,clothes,slot.side);
+  else if(slot.kind==='shoe')frontShoe(ctx,motion.legs.find(l=>l.side===slot.side),appearance.shoes==='rose'?'#bb8788':SAGE);
+  else if(slot.kind==='arm')drawClothedArm(ctx,clothes,slot.side,slot.front);
+  else if(slot.kind==='neck'){const {neck}=motion;capsule(ctx,{x:neck.x,y:neck.y-12},{x:neck.x,y:neck.y+12},17,colors.skin);}
+  else if(slot.kind==='waist')drawClothedShorts(ctx,clothes);
+  else if(slot.kind==='torso')drawClothedTorso(ctx,clothes);
+  else if(slot.kind==='middle')layers.middle?.();
+  else if(slot.kind==='overlay')layers.torso?.();
  }
- // Back pass retains visible portions outside the torso silhouette; the front
- // pass clips the actual mesh triangles, never swapping an entire sleeve.
- for(const arm of motion.arms)drawClothedArm(ctx,clothes,arm.side,false);
- const {neck}=motion;
- capsule(ctx,{x:neck.x,y:neck.y-12},{x:neck.x,y:neck.y+12},17,colors.skin);
- drawClothedShorts(ctx,clothes);
- layers.middle?.();
- drawClothedTorso(ctx,clothes);
- layers.torso?.();
- for(const arm of motion.arms)drawClothedArm(ctx,clothes,arm.side,true);
 }

@@ -1,6 +1,7 @@
 import {drawFrontPart} from './arm-depth.mjs';
 import {appearanceColors} from './appearance-colors.mjs';
 // SPDX-License-Identifier: GPL-3.0-or-later
+import {tennisPose} from './tennis.mjs';
 import {frontWalkPose,courtPose} from './actions.mjs';
 import {frontRunPose} from './running.mjs';
 import {drawIllustratedFigure} from './character.mjs';
@@ -58,13 +59,13 @@ export const SPORTS = {
   communitymeetups: {name:'Community Meetups',icon:'♧',verb:'Make room for connection',detail:'A friendly hello. A new perspective.',period:4.8,color:'#afc8b6',previewScale:1.3,previewX:240,ground:false},
   ...LIFE_ACTIVITIES
 };
-export function pose(sport, phase, resting = false) {
+export function pose(sport, phase, resting = false, options = {}) {
   if (!SPORTS[sport]) throw new Error('Unknown sport');
-  const front=LIFE_ACTIVITIES[sport]?lifePose(sport,phase,resting):LEISURE_IDS.includes(sport)?leisurePose(sport,phase,resting):CREATIVE_IDS.includes(sport)?creativePose(sport,phase,resting):OUTDOOR_IDS.includes(sport)?outdoorPose(sport,phase,resting):FITNESS_IDS.includes(sport)?fitnessPose(sport,phase,resting):GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
+  const front=sport==='tennis'&&!options.legacy?tennisPose(phase,resting,options):LIFE_ACTIVITIES[sport]?lifePose(sport,phase,resting):LEISURE_IDS.includes(sport)?leisurePose(sport,phase,resting):CREATIVE_IDS.includes(sport)?creativePose(sport,phase,resting):OUTDOOR_IDS.includes(sport)?outdoorPose(sport,phase,resting):FITNESS_IDS.includes(sport)?fitnessPose(sport,phase,resting):GAME_IDS.includes(sport)?gamePose(sport,phase,resting):sport==='running'?frontRunPose(phase,resting):sport==='walking'?frontWalkPose(phase,resting):courtPose(sport,phase,resting);
   return {front,bob:0};
 }
-export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage') {
-  const {front}=pose(sport,phase,resting),colors=appearanceColors(outfit);
+export function drawCharacter(ctx, sport, phase, resting = false, color = SPORTS[sport].color, outfit = 'sage', options = {}) {
+  const {front}=pose(sport,phase,resting,options),colors=appearanceColors(outfit);
   ctx.save();
   if(front.outdoor){drawOutdoorEnvironment(ctx,front);ctx.save();applyOutdoorFrame(ctx,front);drawOutdoorBack(ctx,front);}
   if(front.fitness){

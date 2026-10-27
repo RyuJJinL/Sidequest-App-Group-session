@@ -114,12 +114,14 @@ function racketFrame(arm,cock,roll,length,sport){
   angle:Math.atan2(head.y-grip.y,head.x-grip.x),headDistance:span,
   scale:.65+.35*Math.min(1,span/length),faceScale:.4+.6*Math.abs(Math.cos(roll-.65))};
 }
-export function courtPose(sport,phase,resting=false,withProjectile=true){
+export function courtPose(sport,phase,resting=false,withProjectile=true,options={}){
  const c=STROKES[sport];if(!c)throw new Error('Unknown court sport');
  const t=((phase/TAU)%1+1)%1,p=resting?0:phase;
- const [elevation,sweep,flex]=sample(c.arm,p),[cock,roll,swivel]=sample(c.wrist,p);
- const [weight,hipYaw,chestYaw]=sample(c.body,p);
- const hip={x:weight,y:8+(c.crouch??0)+(resting?0:1.5*Math.sin(phase)**2)};
+ const layerWeight=Math.max(0,Math.min(1,options.weight??1));
+ const layer=keys=>{const a=sample(keys,0),b=sample(keys,p);return b.map((v,i)=>a[i]+(v-a[i])*layerWeight);};
+ const [elevation,sweep,flex]=layer(c.arm),[cock,roll,swivel]=layer(c.wrist);
+ const [weight,hipYaw,chestYaw]=layer(c.body);
+ const hip={x:weight,y:8+(c.crouch??0)+(resting?0:layerWeight*1.5*Math.sin(phase)**2)};
  const neck={x:hip.x-(sport==='badminton'?2:1)*Math.sin(chestYaw),y:hip.y-78};
  const legs=[-1,1].map(side=>{
   const start=add({x:hip.x,y:hip.y,z:0},turn({x:side*13,y:0,z:0},hipYaw));
@@ -130,10 +132,10 @@ export function courtPose(sport,phase,resting=false,withProjectile=true){
  const dominant=articulatedArm(shoulders[1],elevation,sweep,flex,swivel,chestYaw);
  let free;
  if(c.support){
-  const [e,s,f]=sample(c.support,p),sw=sample(c.supportSwivel,p)[0];
+  const [e,s,f]=layer(c.support),sw=layer(c.supportSwivel)[0];
   free={...articulatedArm(shoulders[0],e,s,f,sw,chestYaw,-1),handOpen:true};
  }else{
-  const [fx,fy,fz]=sample(c.free,p),freeTarget={x:hip.x+fx,y:hip.y+fy,z:fz};
+  const [fx,fy,fz]=layer(c.free),freeTarget={x:hip.x+fx,y:hip.y+fy,z:fz};
   const solved=chain(shoulders[0],freeTarget,39,33,{x:-.35,y:1,z:-.15});
   free={...limb(shoulders[0],solved.middle,solved.end,-1,'arm'),handOpen:true};
  }

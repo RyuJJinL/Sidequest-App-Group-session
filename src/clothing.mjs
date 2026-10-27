@@ -172,7 +172,7 @@ export function buildClothing(motion,outfit='sage'){
   for(const v of mesh.vertices)v.visibility=rig.depth(v.world);
   return {...mesh,side};
  });
- return {rig,torso,sleeves,waistband,shorts,legs,bareArms,jacket,leggings,appearance,colors:appearanceColors(appearance),torsoPoint:(x,y)=>torsoVertex(rig,x,y)};
+ return {pilot:Boolean(motion.tennis),rig,torso,sleeves,waistband,shorts,legs,bareArms,jacket,leggings,appearance,colors:appearanceColors(appearance),torsoPoint:(x,y)=>torsoVertex(rig,x,y)};
 }
 
 function polygonPath(ctx,points,close=true){ctx.moveTo(points[0].x,points[0].y);for(const p of points.slice(1))ctx.lineTo(p.x,p.y);if(close)ctx.closePath();}
@@ -228,7 +228,7 @@ export function drawClothedLeg(ctx,model,side){
  }
 }
 export function drawClothedShorts(ctx,model){
- const color=model.leggings?'#be8c8d':CREAM,trim=model.leggings?'#e6b5aa':'#c6b397';
+ const color=model.colors.bottom,trim=model.leggings?'#e6b5aa':'#c6b397';
  meshFill(ctx,model.waistband,color);
  for(const mesh of model.shorts){
   meshFill(ctx,mesh,color);
@@ -242,7 +242,7 @@ export function drawClothedShorts(ctx,model){
 }
 export function drawClothedTorso(ctx,model){
  const {torso,jacket,torsoPoint:p}=model;
- meshFill(ctx,torso,jacket?SLATE:SAGE);
+ meshFill(ctx,torso,jacket?SLATE:model.colors.top);
  // Only the outside silhouette is outlined. The shared shoulder/armhole
  // edges are internal fabric and must never become dark socket outlines.
  line(ctx,torso.rows[0]);
@@ -254,13 +254,22 @@ export function drawClothedTorso(ctx,model){
    const us=[-1,-.75,-.5,-.25,0,.25,.5,.75,1];
    fill(ctx,[...us.map(u=>p(u*27,top+13*(1-Math.abs(u)))),...us.toReversed().map(u=>p(u*27,bottom+13*(1-Math.abs(u))))],color);
   };
-  panel(-77,-47,PEACH);panel(-47,-33,CREAM);
+  panel(-77,-47,model.colors.top);panel(-47,-33,CREAM);
   line(ctx,[-72,-60,-48,-36,-24,-7].map(y=>p(0,y)),INK,2);
   fill(ctx,[p(-2,-70),p(2,-70),p(3,-62),p(-3,-62)],SLATE);
  }else{
-  fill(ctx,[p(-13,-73),p(0,-61),p(13,-73),p(15,-59),p(5,-62),p(0,-53),p(-5,-62),p(-15,-59)],CREAM);
-  line(ctx,[p(0,-56),p(0,-44)],CREAM,3.5);
+  if(model.pilot){
+   for(const side of [-1,1]){const collar=[p(side*12,-68),p(0,-58),p(side*5,-48),p(side*15,-59)];fill(ctx,collar,CREAM);line(ctx,[...collar,collar[0]],PEACH,1.1);}
+   fill(ctx,[p(-2,-57),p(2,-57),p(2,-38),p(-2,-38)],CREAM);
+   line(ctx,[p(0,-57),p(0,-39)],'#bd9f82',.6);
+  }else{
+   fill(ctx,[p(-13,-73),p(0,-61),p(13,-73),p(15,-59),p(5,-62),p(0,-53),p(-5,-62),p(-15,-59)],CREAM);
+   line(ctx,[p(0,-56),p(0,-44)],CREAM,3.5);
+  }
  }
+ // Soft side shading is bound to the same bodice, preserving the reference palette.
+ fill(ctx,[p(14,-49),p(22,-49),p(25,-6),p(17,-6)],'#493c3b12',null);
+ fill(ctx,[p(-21,-42),p(-17,-45),p(-15,-12),p(-21,-8)],'#fff1d90b',null);
  // Small pose-driven folds follow the same surface as the shirt. They do not
  // wobble on their own or cross the sleeve/torso seam.
  for(const side of [-1,1]){
@@ -280,8 +289,8 @@ export function drawClothedArm(ctx,model,side,front=false){
   for(const i of [0,2])meshLine(ctx,skin.rows.map(r=>r[i]),front,model.colors.skinInk);
  }
  const shoulder=front?clipClothDepth(mesh.shoulderPatch):mesh.shoulderPatch;
- if(shoulder.length>=3)fill(ctx,shoulder,model.jacket?PEACH:SAGE);
- if(model.jacket)meshFill(ctx,mesh,PEACH,front,3);
+ if(shoulder.length>=3)fill(ctx,shoulder,model.colors.top);
+ if(model.jacket)meshFill(ctx,mesh,model.colors.top,front,3);
  if(model.jacket){
   meshFill(ctx,mesh,CREAM,front,3,5);
   meshFill(ctx,mesh,SLATE,front,5);

@@ -38,15 +38,16 @@ export function mountWardrobe({getAppearance,onChange,getSport,onSportChange}){
  }
  function buildOptions(){
   const groups=$('#wardrobe-groups'),palette=$('#wardrobe-palette'),grouped=Boolean(category.items[0].group);
-  groups.hidden=!grouped;palette.hidden=!grouped;groups.replaceChildren();palette.replaceChildren();
-  if(!grouped)return;
-  for(const group of ['female','male']){
+  const key=category.key==='face'?'skinColor':category.key==='hair'?'hairColor':category.key==='top'?'topColor':category.key==='bottom'?'bottomColor':null;
+  groups.hidden=!grouped;palette.hidden=!key;groups.replaceChildren();palette.replaceChildren();
+  if(!key)return;
+  if(grouped)for(const group of ['female','male']){
    const b=document.createElement('button');b.type='button';b.dataset.collection=group;
    const label=group==='female'?'Female':'Male',kind=category.key==='face'?'faces':'hairstyles';
    b.textContent=`${label} · ${category.items.filter(i=>i.group===group).length}`;b.setAttribute('aria-label',`${label} ${kind}`);b.setAttribute('aria-pressed',group===collection);
    b.addEventListener('click',()=>{collection=group;buildItems();render();});groups.append(b);
   }
-  const key=category.key==='face'?'skinColor':'hairColor',label=category.key==='face'?'Skin tone':'Hair color';
+  const label=category.key==='face'?'Skin tone':category.key==='hair'?'Hair color':category.key==='top'?'Top color':'Bottom color';
   palette.dataset.palette=key;
   const heading=document.createElement('div');heading.className='closet-palette-heading';
   const title=document.createElement('span');title.textContent=label;
@@ -90,6 +91,7 @@ export function mountWardrobe({getAppearance,onChange,getSport,onSportChange}){
  }
  $('#wardrobe-sport').addEventListener('change',event=>{onSportChange(event.target.value);render();});
  $('#wardrobe-open').addEventListener('click',()=>{render();status('Changes apply immediately');dialog.showModal();});
+ $('#head-size').addEventListener('input',event=>choose({...getAppearance(),headSize:Number(event.target.value)},'Head size'));
  $('#wardrobe-close').addEventListener('click',()=>dialog.close());
  $('#wardrobe-done').addEventListener('click',()=>dialog.close());
  function render(){
@@ -102,7 +104,7 @@ export function mountWardrobe({getAppearance,onChange,getSport,onSportChange}){
   }
   for(const b of document.querySelectorAll('[data-wardrobe-preset]')){
    const set=OUTFIT_PRESETS[b.dataset.wardrobePreset];
-   b.setAttribute('aria-pressed',['headAccessory','top','bottom','shoes'].every(key=>appearance[key]===set[key]));
+   b.setAttribute('aria-pressed',['headAccessory','top','bottom','shoes'].every(key=>appearance[key]===set[key])&&['topColor','bottomColor'].every(k=>!appearance[k]||appearance[k]==='original'));
   }
   for(const b of items.querySelectorAll('[data-wardrobe-option]')){
    const active=b.dataset.wardrobeOption===appearance[category.key];b.setAttribute('aria-pressed',active);
@@ -112,10 +114,12 @@ export function mountWardrobe({getAppearance,onChange,getSport,onSportChange}){
   const palette=$('#wardrobe-palette');
   if(!palette.hidden){
    const key=palette.dataset.palette;
-   $('#wardrobe-color-name').textContent=COLOR_PALETTES[key].find(c=>c.id===appearance[key]).label;
-   for(const b of palette.querySelectorAll('[data-color-option]'))b.setAttribute('aria-pressed',b.dataset.colorOption===appearance[key]);
+   $('#wardrobe-color-name').textContent=COLOR_PALETTES[key].find(c=>c.id===(appearance[key]??'original')).label;
+   for(const b of palette.querySelectorAll('[data-color-option]'))b.setAttribute('aria-pressed',b.dataset.colorOption===(appearance[key]??'original'));
   }
   $('#wardrobe-sport').value=getSport();
+  $('#head-size').value=appearance.headSize??1;
+  $('#head-size-value').textContent=Math.round((appearance.headSize??1)*100)+'%';
   $('#wardrobe-preview-name').textContent=preset?PRESET_LABELS[preset]:'Made by you';
  }
  function paintPreview(phase,reducedMotion){

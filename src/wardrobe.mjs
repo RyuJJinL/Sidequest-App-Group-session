@@ -45,7 +45,13 @@ export const HAIR_COLORS=[
  {id:'rose',label:'Dusty rose',hex:'#b27088'},
  {id:'blue',label:'Midnight blue',hex:'#526b99'}
 ];
-export const COLOR_PALETTES={skinColor:SKIN_COLORS,hairColor:HAIR_COLORS};
+export const CLOTHING_COLORS=[
+ {id:'original',label:'Original outfit',hex:'#94a68a'},
+ {id:'sage',label:'Sage',hex:'#94a68a'}, {id:'peach',label:'Peach',hex:'#e9aa8e'},
+ {id:'rose',label:'Dusty rose',hex:'#be8c8d'}, {id:'slate',label:'Slate',hex:'#7e95a7'},
+ {id:'lavender',label:'Lavender',hex:'#b8a4c5'}, {id:'cream',label:'Cream',hex:'#e5d4b5'}
+];
+export const COLOR_PALETTES={skinColor:SKIN_COLORS,hairColor:HAIR_COLORS,topColor:CLOTHING_COLORS,bottomColor:CLOTHING_COLORS};
 export const WARDROBE_CATEGORIES=[
  {key:'face',label:'Face',items:FACES},
  {key:'hair',label:'Hair',items:HAIRSTYLES},
@@ -77,6 +83,7 @@ export function normalizeAppearance(value,fallback='sage'){
  if(value&&typeof value==='object')for(const [key,palette] of Object.entries(COLOR_PALETTES)){
   if(palette.some(color=>color.id===value[key]))result[key]=value[key];
  }
+ if(typeof value?.headSize==='number'&&Number.isFinite(value.headSize))result.headSize=Math.max(.75,Math.min(1.25,value.headSize));
  return result;
 }
 export function restoreAppearance(saved){return normalizeAppearance(saved?.appearance,saved?.outfit==='peach'?'peach':'sage');}
@@ -88,9 +95,11 @@ export function equipPart(appearance,category,id){
 }
 export function applyOutfitPreset(appearance,key){
  const result=normalizeAppearance(appearance),preset=OUTFIT_PRESETS[key];
+ if(preset){delete result.topColor;delete result.bottomColor;}
  if(preset)for(const part of ['headAccessory','top','bottom','shoes'])result[part]=preset[part];
  return result;
 }
 export function appearancePreset(appearance){
+ if(['topColor','bottomColor'].some(k=>appearance[k]&&appearance[k]!=='original'))return null;
  return Object.keys(OUTFIT_PRESETS).find(key=>Object.keys(OUTFIT_PRESETS[key]).every(part=>appearance[part]===OUTFIT_PRESETS[key][part]))??null;
 }

@@ -3,6 +3,7 @@ import {FocusTimer, formatTime, DEFAULTS} from './timer.mjs';
 import {SPORTS, drawCharacter} from './sports.mjs';
 import {restoreAppearance} from './wardrobe.mjs';
 import {mountWardrobe} from './wardrobe-ui.mjs';
+import {settle} from './tennis.mjs';
 import {mountActivityPicker} from './activity-picker.mjs';
 const $ = s => document.querySelector(s);
 let saved = {};
@@ -34,7 +35,7 @@ function render() {
   $('#session-count').textContent = timer.completed;
   $('#round-dots').replaceChildren(...Array.from({length:4},(_,i)=>{const el=document.createElement('i');el.className=i<(timer.completed%4 || (timer.completed>0?4:0))?'filled':'';return el;}));
 }
-let lastFrame = null, phase = 0;
+let lastFrame = null, phase = 0, tennisWeight=0,visualTime=0;
 const canvas = $('#character'), ctx = canvas.getContext('2d');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 function paint() {
@@ -44,7 +45,7 @@ function paint() {
    ctx.fillStyle='#102a2266';ctx.beginPath();ctx.ellipse(0,136,83,9,0,0,Math.PI*2);ctx.fill();
    ctx.strokeStyle='#8dbd8155';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-260,145);ctx.lineTo(320,145);ctx.stroke();
   }
-  drawCharacter(ctx,sport,phase,timer.mode!=='focus'||!timer.running,SPORTS[sport].color,appearance);
+  drawCharacter(ctx,sport,phase,timer.mode!=='focus'||!timer.running,SPORTS[sport].color,appearance,{weight:tennisWeight,time:visualTime});
   ctx.restore();
 }
 const activityPicker=mountActivityPicker({getSelected:()=>sport,onSelect:key=>selectSport(key)});
@@ -58,12 +59,14 @@ function animate(timestamp) {
   const elapsed = lastFrame === null ? 0 : Math.min(.08,(timestamp-lastFrame)/1000);
   lastFrame = timestamp;
   if (!reducedMotion.matches && !document.hidden) phase += elapsed * Math.PI * 2 / SPORTS[sport].period;
+  if(!reducedMotion.matches&&!document.hidden)visualTime+=elapsed;
+  tennisWeight=reducedMotion.matches?0:settle(tennisWeight,timer.running&&timer.mode==='focus'?1:0,elapsed);
   paint();
   wardrobe.paintPreview(phase,reducedMotion.matches);
   requestAnimationFrame(animate);
 }
 function selectSport(key) {
-  sport=key;phase=0;
+  sport=key;phase=0;tennisWeight=0;
   const s=SPORTS[key];
   document.documentElement.style.setProperty('--mint',s.color);
   $('#sport-badge').textContent = `${s.icon} ${s.name.toUpperCase()}`;

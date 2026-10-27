@@ -2,7 +2,7 @@ import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {resolve, extname, sep} from 'node:path';
 const root = resolve(import.meta.dirname);
-const types = {'.html':'text/html', '.css':'text/css', '.mjs':'text/javascript', '.json':'application/json', '.md':'text/plain'};
+const types = {'.html':'text/html', '.css':'text/css', '.mjs':'text/javascript', '.json':'application/json', '.md':'text/plain', '.png':'image/png', '.jpg':'image/jpeg', '.atlas':'text/plain', '.skel':'application/octet-stream'};
 const portIndex = process.argv.indexOf('--port');
 const port = Number(process.env.PORT || (portIndex >= 0 ? process.argv[portIndex+1] : 3000));
 createServer(async (req,res) => {
